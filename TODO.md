@@ -5,11 +5,17 @@ Detalle de cada requisito y rúbricas en [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 **Entrega:** jueves 26 de noviembre de 2026.
 **Integrantes:** Christopher · Randall · Javier
 
-> El caso de uso de abajo es una propuesta; se confirma en la Reunión 1.
+> **Caso de uso aprobado por el profesor (18 nov).** Pidió al menos tres funcionalidades; la tercera (alertas a Webex) también fue aprobada. Registrar esta respuesta en la Minuta 1.
 
 ---
 
-## Propuesta de caso de uso
+## Caso de uso aprobado
+
+**Funcionalidades (3):**
+1. **Configuración:** crear, modificar y borrar interfaces (Postman PUT/PATCH/DELETE + script Python de configuración masiva).
+2. **Monitoreo:** consultar el estado operativo de las interfaces (Postman GET + script Python de monitoreo).
+3. **Alertas a Webex:** enviar un mensaje a una sala de Webex cuando una interfaz esté caída.
+
 
 **Configuración y monitoreo de interfaces de un router Cisco IOS XE mediante RESTCONF**, usando el sandbox gratuito "IOS XE on Cat8kv Always-On" de developer.cisco.com.
 
@@ -17,7 +23,7 @@ Detalle de cada requisito y rúbricas en [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 - **Python (`requests`):** script que aplica la misma configuración a una lista de interfaces/dispositivos y otro que consulta el estado operativo y avisa si una interfaz está caída.
 - **Utilidad real:** reemplaza entrar por CLI equipo por equipo; cubre las áreas de *configuración* y *monitoreo* del enunciado.
 
-Opcional si sobra tiempo: enviar la alerta a un espacio de Webex (integración de APIs).
+- **Webex (obligatorio):** el script de monitoreo envía la alerta a un espacio de Webex mediante su API (integración de APIs).
 
 ---
 
@@ -41,8 +47,8 @@ Carga equilibrada: cada persona investiga, escribe una parte del informe, lleva 
 - [ ] Cada quien abre su **bitácora** personal desde hoy (fecha, actividad, duración)
 
 **Christopher**
-- [ ] Crear cuenta en developer.cisco.com y reservar/probar el sandbox
-- [ ] Instalar Postman y Python (`requests`, `ncclient`, `pyang`)
+- [ ] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *cuenta lista y sandbox Cat8000v reservado (20 nov); falta probar: la PC no alcanza el host en 443/830/22*
+- [ ] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; falta Postman*
 
 **Randall**
 - [ ] Crear la plantilla del informe con el formato exigido (Arial 12, justificado, títulos Arial 12 negrita, pies de tabla/figura Arial 11)
@@ -75,7 +81,7 @@ Cada dato con su cita; nada de Wikipedia.
 - [ ] ¿Qué es NETCONF y bajo qué estándar fue creado?
 - [ ] Cómo funcionan las comunicaciones y por qué se crearon
 - [ ] Protocolo de transporte por defecto
-- [ ] Ejemplo de llamada NETCONF a un equipo (comando + caso de uso), probado en el sandbox
+- [ ] Ejemplo de llamada NETCONF a un equipo (comando + caso de uso), probado en el sandbox — *script `caso-de-uso/netconf_ejemplo.py` listo; falta probarlo*
 - [ ] Qué es una RPC y formato de los mensajes
 
 **Javier — Bloque D: RESTCONF y herramientas**
@@ -94,15 +100,18 @@ Cada dato con su cita; nada de Wikipedia.
 
 **Christopher**
 - [ ] Verificar conectividad RESTCONF al sandbox (GET a `/restconf/data/ietf-interfaces:interfaces`)
-- [ ] Colección Postman: variables de entorno, GET, PUT/POST, PATCH, DELETE
-- [ ] Script Python de configuración (varias interfaces o dispositivos)
-- [ ] Script Python de monitoreo/alerta de interfaces
-- [ ] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa
-- [ ] Subir código al repositorio con README
+- [ ] Colección Postman: variables de entorno, GET, PUT/POST, PATCH, DELETE — *creada en `caso-de-uso/postman/`; falta ejecutarla*
+- [ ] Script Python de configuración (varias interfaces o dispositivos) — *`configurar_interfaces.py` escrito; falta probarlo*
+- [ ] Script Python de monitoreo de interfaces — *`monitorear_interfaces.py` escrito; falta probarlo*
+- [x] Crear bot y token en developer.webex.com y una sala para las alertas — *bot "CE5301 Alertas RESTCONF", sala "CE5301 - Alertas de red"*
+- [x] Integrar el envío de alerta a Webex en el script de monitoreo (cuando una interfaz esté caída) — *mensaje de prueba recibido (HTTP 200)*
+- [ ] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *solo la de Webex (`caso-de-uso/capturas/`)*
+- [ ] Subir código al repositorio con README — *commits en `ChrisDevelopment`; falta push*
 
 **Randall**
 - [ ] Probar la colección y los scripts en su máquina siguiendo el README (validación independiente)
 - [ ] Tomar capturas del `show running-config` / verificación antes y después
+- [ ] Verificar que la alerta llegue a la sala de Webex (captura del mensaje)
 
 **Javier**
 - [ ] Documentar el problema, la solución y las herramientas mientras Christopher lo implementa

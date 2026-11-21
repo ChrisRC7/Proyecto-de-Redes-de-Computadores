@@ -1,0 +1,143 @@
+{
+  "info": {
+    "name": "CE5301 - RESTCONF IOS XE (ietf-interfaces)",
+    "description": "Configuración y monitoreo de interfaces de un Cisco Catalyst 8000v (IOS XE 17.12) mediante RESTCONF, más alerta a Webex.\n\nUsar junto con el entorno 'CE5301 - Cat8kv Sandbox'. Desactivar 'SSL certificate verification' en Settings (el sandbox usa certificado autofirmado).\n\nOrden sugerido: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {"key": "username", "value": "{{username}}", "type": "string"},
+      {"key": "password", "value": "{{password}}", "type": "string"}
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Respuesta exitosa (2xx)', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+          "pm.test('Tiempo de respuesta < 5 s', () => pm.expect(pm.response.responseTime).to.be.below(5000));",
+          "console.log(pm.info.requestName + ' -> HTTP ' + pm.response.code + ' en ' + pm.response.responseTime + ' ms');"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. GET capacidades RESTCONF (root)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept", "value": "application/yang-data+json"}],
+        "url": {"raw": "https://{{host}}:{{port}}/restconf", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf"]},
+        "description": "Verifica conectividad RESTCONF: devuelve los recursos raíz (data, operations, yang-library-version)."
+      }
+    },
+    {
+      "name": "2. GET todas las interfaces (configuración)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept", "value": "application/yang-data+json"}],
+        "url": {"raw": "https://{{host}}:{{port}}/restconf/data/ietf-interfaces:interfaces", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf", "data", "ietf-interfaces:interfaces"]},
+        "description": "Lee la configuración de todas las interfaces según el modelo YANG ietf-interfaces (RFC 8343)."
+      }
+    },
+    {
+      "name": "3. PUT crear Loopback",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Accept", "value": "application/yang-data+json"},
+          {"key": "Content-Type", "value": "application/yang-data+json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ietf-interfaces:interface\": {\n    \"name\": \"{{loopback}}\",\n    \"description\": \"CE5301 - creada desde Postman\",\n    \"type\": \"iana-if-type:softwareLoopback\",\n    \"enabled\": true,\n    \"ietf-ip:ipv4\": {\n      \"address\": [\n        {\"ip\": \"{{loopback_ip}}\", \"netmask\": \"255.255.255.255\"}\n      ]\n    }\n  }\n}"
+        },
+        "url": {"raw": "https://{{host}}:{{port}}/restconf/data/ietf-interfaces:interfaces/interface={{loopback}}", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf", "data", "ietf-interfaces:interfaces", "interface={{loopback}}"]},
+        "description": "Crea (o reemplaza) la interfaz loopback. Respuesta esperada: 201 Created (nueva) o 204 No Content (reemplazada)."
+      }
+    },
+    {
+      "name": "4. GET Loopback (verificar creación)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept", "value": "application/yang-data+json"}],
+        "url": {"raw": "https://{{host}}:{{port}}/restconf/data/ietf-interfaces:interfaces/interface={{loopback}}", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf", "data", "ietf-interfaces:interfaces", "interface={{loopback}}"]}
+      }
+    },
+    {
+      "name": "5. PATCH modificar descripción",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {"key": "Accept", "value": "application/yang-data+json"},
+          {"key": "Content-Type", "value": "application/yang-data+json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ietf-interfaces:interface\": {\n    \"name\": \"{{loopback}}\",\n    \"description\": \"CE5301 - descripcion modificada con PATCH\"\n  }\n}"
+        },
+        "url": {"raw": "https://{{host}}:{{port}}/restconf/data/ietf-interfaces:interfaces/interface={{loopback}}", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf", "data", "ietf-interfaces:interfaces", "interface={{loopback}}"]},
+        "description": "Modifica solo la descripción (merge). Respuesta esperada: 204 No Content."
+      }
+    },
+    {
+      "name": "6. GET estado operativo de la Loopback",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept", "value": "application/yang-data+json"}],
+        "url": {"raw": "https://{{host}}:{{port}}/restconf/data/ietf-interfaces:interfaces-state/interface={{loopback}}", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf", "data", "ietf-interfaces:interfaces-state", "interface={{loopback}}"]},
+        "description": "Monitoreo: admin-status, oper-status, contadores y velocidad."
+      }
+    },
+    {
+      "name": "7. PATCH apagar Loopback (shutdown)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {"key": "Accept", "value": "application/yang-data+json"},
+          {"key": "Content-Type", "value": "application/yang-data+json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ietf-interfaces:interface\": {\n    \"name\": \"{{loopback}}\",\n    \"enabled\": false\n  }\n}"
+        },
+        "url": {"raw": "https://{{host}}:{{port}}/restconf/data/ietf-interfaces:interfaces/interface={{loopback}}", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf", "data", "ietf-interfaces:interfaces", "interface={{loopback}}"]},
+        "description": "Equivale a 'shutdown'. Luego repetir la petición 6 para ver oper-status = down."
+      }
+    },
+    {
+      "name": "8. GET estado de todas las interfaces",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept", "value": "application/yang-data+json"}],
+        "url": {"raw": "https://{{host}}:{{port}}/restconf/data/ietf-interfaces:interfaces-state", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf", "data", "ietf-interfaces:interfaces-state"]}
+      }
+    },
+    {
+      "name": "9. DELETE borrar Loopback",
+      "request": {
+        "method": "DELETE",
+        "header": [{"key": "Accept", "value": "application/yang-data+json"}],
+        "url": {"raw": "https://{{host}}:{{port}}/restconf/data/ietf-interfaces:interfaces/interface={{loopback}}", "protocol": "https", "host": ["{{host}}"], "port": "{{port}}", "path": ["restconf", "data", "ietf-interfaces:interfaces", "interface={{loopback}}"]},
+        "description": "Borra la interfaz. Respuesta esperada: 204 No Content. Un GET posterior devuelve 404."
+      }
+    },
+    {
+      "name": "10. POST alerta a Webex",
+      "request": {
+        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{webex_token}}", "type": "string"}]},
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"roomId\": \"{{webex_room_id}}\",\n  \"markdown\": \"🚨 **Alerta de red** — {{host}}: la interfaz **{{loopback}}** está caída (prueba desde Postman).\"\n}"
+        },
+        "url": {"raw": "https://webexapis.com/v1/messages", "protocol": "https", "host": ["webexapis", "com"], "path": ["v1", "messages"]},
+        "description": "Integración de APIs: publica un mensaje en la sala de Webex usando el token del bot."
+      }
+    }
+  ]
+}

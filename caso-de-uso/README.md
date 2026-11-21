@@ -33,8 +33,14 @@ pip install -r requirements.txt
 copy .env.example .env   # y completar usuario, contraseña, token y roomId
 ```
 
-Para obtener el `WEBEX_ROOM_ID`: con el token del bot, `GET https://webexapis.com/v1/rooms` lista las salas
-donde está el bot; copiar el campo `id`.
+Bot del proyecto: **CE5301 Alertas RESTCONF** (`ce5301-restconf-alertas@webex.bot`).
+Con `WEBEX_TOKEN` en `.env`, el script crea la sala "CE5301 - Alertas de red", guarda su `WEBEX_ROOM_ID`
+y agrega a los integrantes:
+
+```powershell
+python crear_sala_webex.py --miembro correo1@ejemplo.com correo2@ejemplo.com
+python monitorear_interfaces.py --probar-webex
+```
 
 ## Uso — Python
 

@@ -47,7 +47,7 @@ Carga equilibrada: cada persona investiga, escribe una parte del informe, lleva 
 - [ ] Cada quien abre su **bitácora** personal desde hoy (fecha, actividad, duración)
 
 **Christopher**
-- [ ] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *cuenta lista; la reserva del 20 nov expiró (Launch = 6 h). Diagnóstico 22 nov: host y puertos correctos (`devnetsandboxiosxec8k.cisco.com` 443/830/22), la ruta llega al borde de Cisco (131.226.216.78) y ahí se descarta; `RESTCONF_PASSWORD` vacío en `.env`. Falta: nuevo Launch (o Reserve hasta 3 días para cubrir la demo y el video), copiar la contraseña de Access Details a `.env` y repetir la prueba*
+- [ ] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *cuenta lista; la reserva del 20 nov expiró (Launch = 6 h). Diagnóstico 22 nov: host y puertos correctos (`devnetsandboxiosxec8k.cisco.com` 443/830/22), la ruta llega al borde de Cisco (131.226.216.78) y ahí se descarta; `RESTCONF_PASSWORD` vacío en `.env`. Nueva reserva de 3 días hecha (22 nov 12:57 → 25 nov 12:57) y contraseña en `.env`, pero el Cat8000v (131.226.217.182) sigue sin aceptar conexiones en 443/830/22/80 tras 10+ min, mientras otros sandboxes del mismo rango (.151, .152, .159) sí responden desde nuestra red → falla del lado de Cisco. Plan B: Catalyst 9000v Always On (IOS XE, mismo modelo `ietf-interfaces`) o reportar en Get help*
 - [ ] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; falta Postman*
 
 **Randall**

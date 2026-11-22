@@ -1,0 +1,17 @@
+fecha,interfaz,admin,oper,tiempo_estado_ms,tiempo_config_ms
+2026-11-22T13:49:05,Loopback501,up,up,4230.7,314.0
+2026-11-22T13:49:05,Loopback502,up,up,4230.7,314.0
+2026-11-22T13:49:05,Loopback503,up,up,4230.7,314.0
+2026-11-22T13:49:09,Loopback501,up,up,1243.2,512.2
+2026-11-22T13:49:09,Loopback502,down,down,1243.2,512.2
+2026-11-22T13:49:09,Loopback503,up,up,1243.2,512.2
+2026-11-22T13:49:26,Loopback501,up,up,1372.4,281.7
+2026-11-22T13:49:26,Loopback502,up,up,1372.4,281.7
+2026-11-22T13:49:26,Loopback503,up,up,1372.4,281.7
+2026-11-22T13:49:36,GigabitEthernet1,up,up,1164.9,239.9
+2026-11-22T13:49:36,GigabitEthernet2,down,down,1164.9,239.9
+2026-11-22T13:49:36,GigabitEthernet3,down,down,1164.9,239.9
+2026-11-22T13:49:36,Loopback0,up,up,1164.9,239.9
+2026-11-22T13:49:36,Loopback10,up,up,1164.9,239.9
+2026-11-22T13:49:36,Loopback109,up,up,1164.9,239.9
+2026-11-22T13:49:36,VirtualPortGroup0,up,up,1164.9,239.9

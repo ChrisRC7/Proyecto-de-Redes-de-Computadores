@@ -47,8 +47,8 @@ Carga equilibrada: cada persona investiga, escribe una parte del informe, lleva 
 - [ ] Cada quien abre su **bitácora** personal desde hoy (fecha, actividad, duración)
 
 **Christopher**
-- [ ] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *cuenta lista; la reserva del 20 nov expiró (Launch = 6 h). Diagnóstico 22 nov: host y puertos correctos (`devnetsandboxiosxec8k.cisco.com` 443/830/22), la ruta llega al borde de Cisco (131.226.216.78) y ahí se descarta; `RESTCONF_PASSWORD` vacío en `.env`. Nueva reserva de 3 días hecha (22 nov 12:57 → 25 nov 12:57) y contraseña en `.env`, pero el Cat8000v (131.226.217.182) sigue sin aceptar conexiones en 443/830/22/80 tras 10+ min, mientras otros sandboxes del mismo rango (.151, .152, .159) sí responden desde nuestra red → falla del lado de Cisco. Probado también el Catalyst 9000v Always On (reserva 22 nov 13:11 → 25 nov 13:11, se terminó la del 8000v porque solo se permite una): acepta TCP pero RESTCONF da 502 (nginx de IOS XE) y SSH/NETCONF cortan antes del banner. **Causa (foros de Cisco Community, 22 nov):** caída del lado de Cisco en ambos Always On, reportada por otros usuarios el 19, 20 y 22 nov sin respuesta aún; el 17 nov se arregló solo cuando el equipo de Sandbox reinició el equipo. Cisco recomienda un sandbox *on-demand* para trabajos largos, y la plataforma está en transición (Always On solo garantizados hasta diciembre). Alternativa: **Catalyst 8000v on-demand** (privado, IOS XE 17.12.02, hasta 2 días, requiere VPN Cisco Secure Client/AnyConnect; host 10.10.20.48)*
-- [ ] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; falta Postman*
+- [x] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *los Always On (Cat8000v y Cat9000v) están caídos del lado de Cisco (reportado en Cisco Community 19–22 nov). Se usa el **Catalyst 8000v on-demand** (privado, IOS XE 17.12.02), reservado 22 nov 13:22 → **24 nov 13:22**; acceso por VPN con OpenConnect GUI 1.6.2 (`D:\Programacion\Herramientas\OpenConnect-GUI`, perfil con Interface name `devnet`); router `10.10.20.48`. Reservar de nuevo antes de grabar el video si la reserva ya venció*
+- [ ] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; falta Postman (la colección no se ha corrido)*
 
 **Randall**
 - [ ] Crear la plantilla del informe con el formato exigido (Arial 12, justificado, títulos Arial 12 negrita, pies de tabla/figura Arial 11)
@@ -81,7 +81,7 @@ Cada dato con su cita; nada de Wikipedia.
 - [ ] ¿Qué es NETCONF y bajo qué estándar fue creado?
 - [ ] Cómo funcionan las comunicaciones y por qué se crearon
 - [ ] Protocolo de transporte por defecto
-- [ ] Ejemplo de llamada NETCONF a un equipo (comando + caso de uso), probado en el sandbox — *script `caso-de-uso/netconf_ejemplo.py` listo; falta probarlo*
+- [x] Ejemplo de llamada NETCONF a un equipo (comando + caso de uso), probado en el sandbox — *`netconf_ejemplo.py --capacidades` OK 22 nov: sesión en 2,8 s, `<get-config>` en 389 ms; salida en `caso-de-uso/resultados/netconf_get_config.txt`*
 - [ ] Qué es una RPC y formato de los mensajes
 
 **Javier — Bloque D: RESTCONF y herramientas**
@@ -99,13 +99,13 @@ Cada dato con su cita; nada de Wikipedia.
 ## Fase 2 — Caso de uso (15 nov a 20 nov)
 
 **Christopher**
-- [ ] Verificar conectividad RESTCONF al sandbox (GET a `/restconf/data/ietf-interfaces:interfaces`)
-- [ ] Colección Postman: variables de entorno, GET, PUT/POST, PATCH, DELETE — *creada en `caso-de-uso/postman/`; falta ejecutarla*
-- [ ] Script Python de configuración (varias interfaces o dispositivos) — *`configurar_interfaces.py` escrito; falta probarlo*
-- [ ] Script Python de monitoreo de interfaces — *`monitorear_interfaces.py` escrito; falta probarlo*
+- [x] Verificar conectividad RESTCONF al sandbox (GET a `/restconf/data/ietf-interfaces:interfaces`) — *HTTP 200 en ~0,7 s por la VPN (22 nov)*
+- [ ] Colección Postman: variables de entorno, GET, PUT/POST, PATCH, DELETE — *creada en `caso-de-uso/postman/`, entorno ya apunta a `10.10.20.48`; falta ejecutarla en Postman (con la VPN conectada) y capturar*
+- [x] Script Python de configuración (varias interfaces o dispositivos) — *probado 22 nov: crear (PUT 201), listar (GET 200), modificar (PATCH 204), apagar/encender (PATCH 204), borrar (DELETE 204), 100 % éxito*
+- [x] Script Python de monitoreo de interfaces — *probado 22 nov: detectó Loopback502 apagada y envió la alerta a Webex (HTTP 200)*
 - [x] Crear bot y token en developer.webex.com y una sala para las alertas — *bot "CE5301 Alertas RESTCONF", sala "CE5301 - Alertas de red"*
 - [x] Integrar el envío de alerta a Webex en el script de monitoreo (cuando una interfaz esté caída) — *mensaje de prueba recibido (HTTP 200)*
-- [ ] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *solo la de Webex (`caso-de-uso/capturas/`)*
+- [ ] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *CSV y log de la corrida en `caso-de-uso/resultados/`; faltan capturas de pantalla (Postman, terminal y el mensaje de alerta en Webex)*
 - [ ] Subir código al repositorio con README — *commits en `ChrisDevelopment`; falta push*
 
 **Randall**

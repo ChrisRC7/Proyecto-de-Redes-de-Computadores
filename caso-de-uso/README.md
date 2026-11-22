@@ -1,7 +1,7 @@
 # Caso de uso: configuración y monitoreo de interfaces IOS XE con RESTCONF
 
 Desafío de Redes (CE-5301). Automatiza tres tareas sobre un router Cisco Catalyst 8000v
-(IOS XE 17.12) del sandbox **Catalyst 8000v Always On** de Cisco DevNet:
+(IOS XE 17.12.02) del sandbox privado **Catalyst 8000v (on-demand)** de Cisco DevNet, accedido por VPN:
 
 1. **Configuración:** crear, modificar, apagar/encender y borrar interfaces (Postman + `configurar_interfaces.py`).
 2. **Monitoreo:** consultar el estado operativo de las interfaces (Postman + `monitorear_interfaces.py`).
@@ -12,17 +12,28 @@ Todas las llamadas usan el modelo YANG estándar `ietf-interfaces` (RFC 8343) y 
 ## Arquitectura
 
 ```
-PC (Postman / Python requests) ──HTTPS 443 (RESTCONF, JSON)──► devnetsandboxiosxec8k.cisco.com (Cat8000v)
-            │
-            └──HTTPS 443 (REST, Bearer token)──► webexapis.com/v1/messages ──► Sala de Webex
+PC (Postman / Python requests)
+   │
+   ├──VPN AnyConnect (OpenConnect)──► devnetsandbox-usw1-reservation.cisco.com:<puerto>
+   │        └── túnel 10.10.20.0/24 ──HTTPS 443 (RESTCONF, JSON) / SSH 830 (NETCONF)──► 10.10.20.48 (Cat8000v)
+   │
+   └──HTTPS 443 (REST, Bearer token)──► webexapis.com/v1/messages ──► Sala de Webex
 ```
+
+> **Por qué on-demand y no Always On (22 nov 2026):** los sandboxes compartidos *Catalyst 8000v/9000v Always On*
+> estaban caídos del lado de Cisco (sin respuesta en 443/830/22 o RESTCONF 502), reportado por otros usuarios
+> en Cisco Community. Cisco recomienda la versión on-demand para trabajos que no sean pruebas rápidas.
 
 ## Requisitos
 
 - Python 3.10+ y `pip install -r requirements.txt`
 - Postman (app de escritorio o web con agente)
-- Cuenta en developer.cisco.com con una reserva activa del sandbox **Catalyst 8000v Always On**
-  (botón *Launch*; las credenciales aparecen en Stack Automation → *Access Details* y cambian en cada reserva)
+- Cuenta en developer.cisco.com con una reserva activa del sandbox **Catalyst 8000v** (on-demand, hasta 2 días;
+  tarda ~15 min en aprovisionar). En Stack Automation → *Access Details* aparecen `vpn_address`, `vpn_username`,
+  `vpn_password` y las credenciales del router (`developer` en `10.10.20.48`, puertos 22/830/443)
+- Cliente VPN compatible con AnyConnect: Cisco Secure Client u **OpenConnect GUI 1.6.2**
+  (infradead.org/openconnect-gui). En OpenConnect, poner en el perfil un **Interface name** corto (p. ej. `devnet`);
+  con el nombre automático Windows falla con `Set up tun device failed`
 - Bot de Webex (developer.webex.com → *My Webex Apps* → *Create a Bot*) agregado a una sala
 
 ## Configuración

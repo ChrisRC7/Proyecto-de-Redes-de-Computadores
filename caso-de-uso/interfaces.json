@@ -2,8 +2,6 @@
   "dispositivos": [
     {
       "nombre": "cat8kv-sandbox",
-      "host": "devnetsandboxiosxec8k.cisco.com",
-      "port": 443,
       "interfaces": [
         {"nombre": "Loopback501", "descripcion": "CE5301 - creada por RESTCONF", "ip": "10.150.1.1", "mascara": "255.255.255.255"},
         {"nombre": "Loopback502", "descripcion": "CE5301 - creada por RESTCONF", "ip": "10.150.2.1", "mascara": "255.255.255.255"},

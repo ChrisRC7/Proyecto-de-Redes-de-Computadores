@@ -25,7 +25,7 @@ def _load_env_file() -> None:
 
 _load_env_file()
 
-HOST = os.getenv("RESTCONF_HOST", "devnetsandboxiosxec8k.cisco.com")
+HOST = os.getenv("RESTCONF_HOST", "10.10.20.48")
 PORT = int(os.getenv("RESTCONF_PORT", "443"))
 USER = os.getenv("RESTCONF_USER", "")
 PASSWORD = os.getenv("RESTCONF_PASSWORD", "")

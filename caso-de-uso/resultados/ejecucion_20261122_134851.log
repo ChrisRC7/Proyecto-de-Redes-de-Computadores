@@ -1,0 +1,100 @@
+
+################ $ python configurar_interfaces.py crear
+
+== cat8kv-sandbox (10.10.20.48) ==
+  [OK ] crear     Loopback501  HTTP 201   1287.9 ms
+  [OK ] crear     Loopback502  HTTP 201   1252.4 ms
+  [OK ] crear     Loopback503  HTTP 201   1129.5 ms
+
+Resumen: 3/3 operaciones exitosas, tiempo promedio 1223.3 ms
+Resultados guardados en resultados\configuracion_crear_20261122_134855.csv
+
+################ $ python configurar_interfaces.py listar
+
+== cat8kv-sandbox (10.10.20.48) ==
+  [OK ] listar    Loopback501  HTTP 200    617.4 ms
+        {"ietf-interfaces:interface": [{"name": "Loopback501", "description": "CE5301 - creada por RESTCONF", "type": "iana-if-type:softwareLoopback", "enabled": true, "ietf-ip:ipv4": {"address": [{"ip": "10.150.1.1", "netmask": "255.255.255.255"}]}, "ietf-ip:ipv6": {}}]}
+  [OK ] listar    Loopback502  HTTP 200    155.7 ms
+        {"ietf-interfaces:interface": [{"name": "Loopback502", "description": "CE5301 - creada por RESTCONF", "type": "iana-if-type:softwareLoopback", "enabled": true, "ietf-ip:ipv4": {"address": [{"ip": "10.150.2.1", "netmask": "255.255.255.255"}]}, "ietf-ip:ipv6": {}}]}
+  [OK ] listar    Loopback503  HTTP 200    152.0 ms
+        {"ietf-interfaces:interface": [{"name": "Loopback503", "description": "CE5301 - creada por RESTCONF", "type": "iana-if-type:softwareLoopback", "enabled": true, "ietf-ip:ipv4": {"address": [{"ip": "10.150.3.1", "netmask": "255.255.255.255"}]}, "ietf-ip:ipv6": {}}]}
+
+Resumen: 3/3 operaciones exitosas, tiempo promedio 308.4 ms
+Resultados guardados en resultados\configuracion_listar_20261122_134857.csv
+
+################ $ python configurar_interfaces.py modificar --descripcion CE5301 - modificada por PATCH
+
+== cat8kv-sandbox (10.10.20.48) ==
+  [OK ] modificar Loopback501  HTTP 204   1086.7 ms
+  [OK ] modificar Loopback502  HTTP 204   1044.0 ms
+  [OK ] modificar Loopback503  HTTP 204    801.3 ms
+
+Resumen: 3/3 operaciones exitosas, tiempo promedio 977.3 ms
+Resultados guardados en resultados\configuracion_modificar_20261122_134900.csv
+
+################ $ python monitorear_interfaces.py --solo Loopback501 Loopback502 Loopback503 --sin-webex
+
+[2026-11-22 13:49:05] 10.10.20.48  (interfaces-state 4231 ms, interfaces 314 ms)
+  Interfaz                Admin   Oper              Descripción
+  Loopback501             up      up                CE5301 - modificada por PATCH
+  Loopback502             up      up                CE5301 - modificada por PATCH
+  Loopback503             up      up                CE5301 - modificada por PATCH
+  Total: 3 interfaces, 3 up, 0 caídas
+
+################ $ python configurar_interfaces.py apagar --solo Loopback502
+
+== cat8kv-sandbox (10.10.20.48) ==
+  [OK ] apagar    Loopback502  HTTP 204   1162.9 ms
+
+Resumen: 1/1 operaciones exitosas, tiempo promedio 1162.9 ms
+Resultados guardados en resultados\configuracion_apagar_20261122_134907.csv
+
+################ $ python monitorear_interfaces.py --solo Loopback501 Loopback502 Loopback503
+
+[2026-11-22 13:49:09] 10.10.20.48  (interfaces-state 1243 ms, interfaces 512 ms)
+  Interfaz                Admin   Oper              Descripción
+  Loopback501             up      up                CE5301 - modificada por PATCH
+  Loopback502             down    down              CE5301 - modificada por PATCH  <-- CAÍDA
+  Loopback503             up      up                CE5301 - modificada por PATCH
+  Total: 3 interfaces, 2 up, 1 caídas
+  Webex: HTTP 200 en 1240.5 ms
+
+################ $ python configurar_interfaces.py encender --solo Loopback502
+
+== cat8kv-sandbox (10.10.20.48) ==
+  [OK ] encender  Loopback502  HTTP 204    853.7 ms
+
+Resumen: 1/1 operaciones exitosas, tiempo promedio 853.7 ms
+Resultados guardados en resultados\configuracion_encender_20261122_134924.csv
+
+################ $ python monitorear_interfaces.py --solo Loopback501 Loopback502 Loopback503 --sin-webex
+
+[2026-11-22 13:49:26] 10.10.20.48  (interfaces-state 1372 ms, interfaces 282 ms)
+  Interfaz                Admin   Oper              Descripción
+  Loopback501             up      up                CE5301 - modificada por PATCH
+  Loopback502             up      up                CE5301 - modificada por PATCH
+  Loopback503             up      up                CE5301 - modificada por PATCH
+  Total: 3 interfaces, 3 up, 0 caídas
+
+################ $ python configurar_interfaces.py borrar
+
+== cat8kv-sandbox (10.10.20.48) ==
+  [OK ] borrar    Loopback501  HTTP 204   2700.9 ms
+  [OK ] borrar    Loopback502  HTTP 204   1879.9 ms
+  [OK ] borrar    Loopback503  HTTP 204   2431.8 ms
+
+Resumen: 3/3 operaciones exitosas, tiempo promedio 2337.5 ms
+Resultados guardados en resultados\configuracion_borrar_20261122_134934.csv
+
+################ $ python monitorear_interfaces.py --sin-webex
+
+[2026-11-22 13:49:36] 10.10.20.48  (interfaces-state 1165 ms, interfaces 240 ms)
+  Interfaz                Admin   Oper              Descripción
+  GigabitEthernet1        up      up                MANAGEMENT INTERFACE - DON'T TOUCH ME
+  GigabitEthernet2        down    down              Network Interface  <-- CAÍDA
+  GigabitEthernet3        down    down              Network Interface  <-- CAÍDA
+  Loopback0               up      up                
+  Loopback10              up      up                
+  Loopback109             up      up                Configured by RESTCONF ga jadi
+  VirtualPortGroup0       up      up                
+  Total: 7 interfaces, 5 up, 2 caídas

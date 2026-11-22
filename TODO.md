@@ -105,7 +105,8 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Script Python de monitoreo de interfaces — *probado 22 nov: detectó Loopback502 apagada y envió la alerta a Webex (HTTP 200)*
 - [x] Crear bot y token en developer.webex.com y una sala para las alertas — *bot "CE5301 Alertas RESTCONF", sala "CE5301 - Alertas de red"*
 - [x] Integrar el envío de alerta a Webex en el script de monitoreo (cuando una interfaz esté caída) — *mensaje de prueba recibido (HTTP 200)*
-- [ ] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *CSV y log de la corrida en `caso-de-uso/resultados/`; faltan capturas de pantalla (Postman, terminal y el mensaje de alerta en Webex)*
+- [ ] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *listo 22 nov: 11 capturas de terminal (`caso-de-uso/capturas/terminal/`), alerta en Webex, VPN y reserva; CSV y logs en `caso-de-uso/resultados/`. Solo faltan las de Postman*
+- [x] Preparar la demo del video — *`caso-de-uso/demo/demo_caso_de_uso.ps1` (pasos con pausa), guion con tiempos en `caso-de-uso/demo/GUION_DEMO.md` y grabación de respaldo sin audio `caso-de-uso/capturas/video/demo_terminal_sin_audio.mp4` (2:45). La parte con cámara y voz la graba Christopher*
 - [x] Subir código al repositorio con README — *push de `ChrisDevelopment` a GitHub (22 nov); falta merge a `main`*
 
 **Randall**

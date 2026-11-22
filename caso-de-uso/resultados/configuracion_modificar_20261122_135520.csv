@@ -1,0 +1,4 @@
+fecha,dispositivo,interfaz,accion,http,tiempo_ms
+2026-11-22T13:55:18,cat8kv-sandbox,Loopback501,modificar,204,2031.1
+2026-11-22T13:55:19,cat8kv-sandbox,Loopback502,modificar,204,1101.9
+2026-11-22T13:55:20,cat8kv-sandbox,Loopback503,modificar,204,958.1

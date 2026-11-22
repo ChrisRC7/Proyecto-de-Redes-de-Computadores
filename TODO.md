@@ -47,7 +47,7 @@ Carga equilibrada: cada persona investiga, escribe una parte del informe, lleva 
 - [ ] Cada quien abre su **bitácora** personal desde hoy (fecha, actividad, duración)
 
 **Christopher**
-- [ ] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *cuenta lista y sandbox Cat8000v reservado (20 nov); falta probar: la PC no alcanza el host en 443/830/22*
+- [ ] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *cuenta lista; la reserva del 20 nov expiró (Launch = 6 h). Diagnóstico 22 nov: host y puertos correctos (`devnetsandboxiosxec8k.cisco.com` 443/830/22), la ruta llega al borde de Cisco (131.226.216.78) y ahí se descarta; `RESTCONF_PASSWORD` vacío en `.env`. Falta: nuevo Launch (o Reserve hasta 3 días para cubrir la demo y el video), copiar la contraseña de Access Details a `.env` y repetir la prueba*
 - [ ] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; falta Postman*
 
 **Randall**
@@ -75,7 +75,7 @@ Cada dato con su cita; nada de Wikipedia.
 - [ ] ¿Qué es YANG?
 - [ ] Lenguaje YANG vs. modelos de datos YANG vs. YANG data
 - [ ] Estructura del modelo de datos YANG y cómo se usa
-- [ ] pyang: qué es y cómo se usa (con captura de `pyang -f tree`; pedir la salida a Christopher)
+- [ ] pyang: qué es y cómo se usa (con captura de `pyang -f tree`) — *salida lista en `caso-de-uso/yang/` (ietf-interfaces rev. 2018-02-20 + ietf-ip, pyang 2.7.1)*
 
 **Christopher — Bloque C: NETCONF**
 - [ ] ¿Qué es NETCONF y bajo qué estándar fue creado?

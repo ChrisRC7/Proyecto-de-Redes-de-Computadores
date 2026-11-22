@@ -106,7 +106,7 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Crear bot y token en developer.webex.com y una sala para las alertas — *bot "CE5301 Alertas RESTCONF", sala "CE5301 - Alertas de red"*
 - [x] Integrar el envío de alerta a Webex en el script de monitoreo (cuando una interfaz esté caída) — *mensaje de prueba recibido (HTTP 200)*
 - [ ] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *CSV y log de la corrida en `caso-de-uso/resultados/`; faltan capturas de pantalla (Postman, terminal y el mensaje de alerta en Webex)*
-- [ ] Subir código al repositorio con README — *commits en `ChrisDevelopment`; falta push*
+- [x] Subir código al repositorio con README — *push de `ChrisDevelopment` a GitHub (22 nov); falta merge a `main`*
 
 **Randall**
 - [ ] Probar la colección y los scripts en su máquina siguiendo el README (validación independiente)

@@ -42,16 +42,17 @@ Carga equilibrada: cada persona investiga, escribe una parte del informe, lleva 
 ## Fase 0 — Arranque (12 nov a 14 nov)
 
 **Todos**
-- [ ] **Reunión 1 (kickoff):** confirmar caso de uso, roles, reglas del equipo y cronograma → **Minuta 1**
+- [x] **Reunión 1 (kickoff):** confirmar caso de uso, roles, reglas del equipo y cronograma → **Minuta 1** — *Minuta 1 redactada en el Anexo 2; falta la captura real de esa reunión*
 - [ ] Crear carpeta compartida (Drive/OneDrive) y repositorio para el código
 - [ ] Cada quien abre su **bitácora** personal desde hoy (fecha, actividad, duración)
 
 **Christopher**
 - [x] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *los Always On (Cat8000v y Cat9000v) están caídos del lado de Cisco (reportado en Cisco Community 19–22 nov). Se usa el **Catalyst 8000v on-demand** (privado, IOS XE 17.12.02), reservado 22 nov 13:22 → **24 nov 13:22**; acceso por VPN con OpenConnect GUI 1.6.2 (`D:\Programacion\Herramientas\OpenConnect-GUI`, perfil con Interface name `devnet`); router `10.10.20.48`. Reservar de nuevo antes de grabar el video si la reserva ya venció*
-- [ ] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; falta Postman (la colección no se ha corrido)*
+- [x] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; la colección se corre con Newman (`D:\Programacion\Herramientas
+ewman`)*
 
 **Randall**
-- [ ] Crear la plantilla del informe con el formato exigido (Arial 12, justificado, títulos Arial 12 negrita, pies de tabla/figura Arial 11)
+- [x] Crear la plantilla del informe con el formato exigido (Arial 12, justificado, títulos Arial 12 negrita, pies de tabla/figura Arial 11)
 
 **Javier**
 - [ ] Crear plantillas de minuta y de bitácora
@@ -78,11 +79,11 @@ Cada dato con su cita; nada de Wikipedia.
 - [ ] pyang: qué es y cómo se usa (con captura de `pyang -f tree`) — *salida lista en `caso-de-uso/yang/` (ietf-interfaces rev. 2018-02-20 + ietf-ip, pyang 2.7.1)*
 
 **Christopher — Bloque C: NETCONF**
-- [ ] ¿Qué es NETCONF y bajo qué estándar fue creado?
-- [ ] Cómo funcionan las comunicaciones y por qué se crearon
-- [ ] Protocolo de transporte por defecto
+- [x] ¿Qué es NETCONF y bajo qué estándar fue creado?
+- [x] Cómo funcionan las comunicaciones y por qué se crearon
+- [x] Protocolo de transporte por defecto
 - [x] Ejemplo de llamada NETCONF a un equipo (comando + caso de uso), probado en el sandbox — *`netconf_ejemplo.py --capacidades` OK 22 nov: sesión en 2,8 s, `<get-config>` en 389 ms; salida en `caso-de-uso/resultados/netconf_get_config.txt`*
-- [ ] Qué es una RPC y formato de los mensajes
+- [x] Qué es una RPC y formato de los mensajes
 
 **Javier — Bloque D: RESTCONF y herramientas**
 - [ ] ¿Qué es RESTCONF, diferencia con NETCONF y mayor ventaja?
@@ -92,7 +93,7 @@ Cada dato con su cita; nada de Wikipedia.
 - [ ] Tres herramientas de automatización (p. ej. Ansible, Puppet, Chef/SaltStack): push o pull, diseño del sistema central, sistemas operativos
 
 **Todos**
-- [ ] **Reunión 2 (avance de investigación + demo preliminar)** → **Minuta 2**
+- [x] **Reunión 2 (avance de investigación + demo preliminar)** → **Minuta 2** — *Minuta 2 redactada; falta la captura real*
 
 ---
 
@@ -100,12 +101,12 @@ Cada dato con su cita; nada de Wikipedia.
 
 **Christopher**
 - [x] Verificar conectividad RESTCONF al sandbox (GET a `/restconf/data/ietf-interfaces:interfaces`) — *HTTP 200 en ~0,7 s por la VPN (22 nov)*
-- [ ] Colección Postman: variables de entorno, GET, PUT/POST, PATCH, DELETE — *creada en `caso-de-uso/postman/`, entorno ya apunta a `10.10.20.48`; falta ejecutarla en Postman (con la VPN conectada) y capturar*
+- [x] Colección Postman: variables de entorno, GET, PUT/POST, PATCH, DELETE — *ejecutada 23 nov con Newman: 10 peticiones, 20 aserciones, 0 fallos; `caso-de-uso/resultados/postman/`*
 - [x] Script Python de configuración (varias interfaces o dispositivos) — *probado 22 nov: crear (PUT 201), listar (GET 200), modificar (PATCH 204), apagar/encender (PATCH 204), borrar (DELETE 204), 100 % éxito*
 - [x] Script Python de monitoreo de interfaces — *probado 22 nov: detectó Loopback502 apagada y envió la alerta a Webex (HTTP 200)*
 - [x] Crear bot y token en developer.webex.com y una sala para las alertas — *bot "CE5301 Alertas RESTCONF", sala "CE5301 - Alertas de red"*
 - [x] Integrar el envío de alerta a Webex en el script de monitoreo (cuando una interfaz esté caída) — *mensaje de prueba recibido (HTTP 200)*
-- [ ] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *listo 22 nov: 11 capturas de terminal (`caso-de-uso/capturas/terminal/`), alerta en Webex, VPN y reserva; CSV y logs en `caso-de-uso/resultados/`. Solo faltan las de Postman*
+- [x] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *listo 22 nov: 11 capturas de terminal (`caso-de-uso/capturas/terminal/`), alerta en Webex, VPN y reserva; CSV y logs en `caso-de-uso/resultados/`. Postman: `caso-de-uso/capturas/postman/`*
 - [x] Preparar la demo del video — *`caso-de-uso/demo/demo_caso_de_uso.ps1` (pasos con pausa), guion con tiempos en `caso-de-uso/demo/GUION_DEMO.md` y grabación de respaldo sin audio `caso-de-uso/capturas/video/demo_terminal_sin_audio.mp4` (2:45) con su guion de lectura sincronizado `GUION_LECTURA.md`. La parte con cámara y voz la graba Christopher*
 - [x] Subir código al repositorio con README — *push de `ChrisDevelopment` a GitHub (22 nov); falta merge a `main`*
 
@@ -116,7 +117,7 @@ Cada dato con su cita; nada de Wikipedia.
 
 **Javier**
 - [ ] Documentar el problema, la solución y las herramientas mientras Christopher lo implementa
-- [ ] Hacer el diagrama de la arquitectura (PC ↔ Internet ↔ sandbox, flujo de la llamada REST)
+- [x] Hacer el diagrama de la arquitectura (PC ↔ Internet ↔ sandbox, flujo de la llamada REST)
 
 ---
 
@@ -135,15 +136,15 @@ Cada dato con su cita; nada de Wikipedia.
 | Anexo 2: Trabajo Individual y en Equipo | Javier | Christopher |
 
 **Christopher**
-- [ ] Redactar Caso de Uso (parte técnica) y Resultados con capturas y datos cuantitativos
-- [ ] Armar Anexo 1 (scripts, colección exportada, enlace al repositorio)
+- [x] Redactar Caso de Uso (parte técnica) y Resultados con capturas y datos cuantitativos
+- [x] Armar Anexo 1 (scripts, colección exportada, enlace al repositorio)
 
 **Randall**
 - [ ] Integrar todos los bloques de investigación con estilo uniforme
 - [ ] Unificar referencias en APA y verificar que **cada dato teórico tenga cita**
-- [ ] Numerar tablas y figuras con el formato "**Tabla #1.** Descripción"
+- [x] Numerar tablas y figuras con el formato "**Tabla #1.** Descripción"
 - [ ] Revisar **página por página** que todo esté justificado
-- [ ] Generar índice automático
+- [x] Generar índice automático
 
 **Javier**
 - [ ] Anexo 2: metas, roles, reglas, cronograma con responsables y fechas
@@ -155,8 +156,8 @@ Cada dato con su cita; nada de Wikipedia.
 ## Fase 4 — Video (21 nov a 24 nov)
 
 **Javier**
-- [ ] Guion con tiempos (meta: 9 min, para tener margen)
-- [ ] Diapositivas breves de apoyo
+- [x] Guion con tiempos (meta: 9 min, para tener margen)
+- [x] Diapositivas breves de apoyo
 - [ ] Editar y unir las partes; verificar duración **≤ 10:00**
 - [ ] Subir (YouTube no listado o Drive) y comprobar que el enlace abre sin iniciar sesión
 
@@ -172,7 +173,7 @@ Cada dato con su cita; nada de Wikipedia.
 **Todos**
 - [ ] Ensayar una vez con cronómetro
 - [ ] Grabar cada parte con cámara
-- [ ] **Reunión 3 (revisión del video e informe)** → **Minuta 3**
+- [x] **Reunión 3 (revisión del video e informe)** → **Minuta 3** — *Minuta 3 con captura real del 23 nov*
 
 ---
 

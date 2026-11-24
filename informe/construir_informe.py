@@ -1,0 +1,612 @@
+# -*- coding: utf-8 -*-
+"""Genera Informe.docx (Arial 12, todo justificado) a partir del contenido de este archivo y de los CSV reales."""
+import csv, glob, os, re, statistics
+from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.shared import Pt, Cm, RGBColor
+from docx.enum.text import WD_COLOR_INDEX
+
+BASE = os.path.dirname(os.path.abspath(__file__))
+CASO = os.path.join(BASE, "..", "caso-de-uso")
+J = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+doc = Document()
+sec = doc.sections[0]
+sec.page_width, sec.page_height = Cm(21.59), Cm(27.94)
+for m in ("left_margin", "right_margin", "top_margin", "bottom_margin"):
+    setattr(sec, m, Cm(2.54))
+
+
+def fuente(style, size=12, bold=False):
+    style.font.name = "Arial"
+    style.font.size = Pt(size)
+    style.font.bold = bold
+    style.font.color.rgb = RGBColor(0, 0, 0)
+    rpr = style.element.get_or_add_rPr()
+    rf = rpr.find(qn("w:rFonts"))
+    if rf is None:
+        rf = OxmlElement("w:rFonts"); rpr.append(rf)
+    for a in ("w:ascii", "w:hAnsi", "w:cs", "w:eastAsia"):
+        rf.set(qn(a), "Arial")
+    for a in ("w:asciiTheme", "w:hAnsiTheme", "w:cstheme", "w:eastAsiaTheme"):
+        if rf.get(qn(a)) is not None:
+            del rf.attrib[qn(a)]
+
+
+fuente(doc.styles["Normal"])
+doc.styles["Normal"].paragraph_format.alignment = J
+doc.styles["Normal"].paragraph_format.space_after = Pt(6)
+doc.styles["Normal"].paragraph_format.line_spacing = 1.15
+for n in (1, 2, 3):
+    st = doc.styles[f"Heading {n}"]
+    fuente(st, 12, True)
+    st.paragraph_format.alignment = J
+    st.paragraph_format.space_before = Pt(12)
+    st.paragraph_format.space_after = Pt(6)
+    st.paragraph_format.keep_with_next = True
+
+
+def runs(p, texto, size=None, mono=False):
+    """Admite **negrita** y [[resaltado]]."""
+    for parte in re.split(r"(\*\*.+?\*\*|\[\[.+?\]\]|`[^`]+`)", texto):
+        if not parte:
+            continue
+        if parte.startswith("**"):
+            r = p.add_run(parte[2:-2]); r.bold = True
+        elif parte.startswith("[["):
+            r = p.add_run(parte[2:-2]); r.font.highlight_color = WD_COLOR_INDEX.YELLOW
+        elif parte.startswith("`"):
+            r = p.add_run(parte[1:-1]); r.font.name = "Courier New"
+            r._element.get_or_add_rPr().rFonts.set(qn("w:ascii"), "Courier New")
+            r._element.rPr.rFonts.set(qn("w:hAnsi"), "Courier New")
+            if size:
+                r.font.size = Pt(size)
+            continue
+        else:
+            r = p.add_run(parte)
+        r.font.name = "Courier New" if mono else "Arial"
+        if mono:
+            r._element.rPr.rFonts.set(qn("w:ascii"), "Courier New")
+        if size:
+            r.font.size = Pt(size)
+    return p
+
+
+def P(texto, size=None, sangria=False):
+    p = doc.add_paragraph()
+    p.alignment = J
+    if sangria:
+        p.paragraph_format.left_indent = Cm(0.8)
+    return runs(p, texto, size)
+
+
+def H(texto, nivel=1):
+    p = doc.add_heading(level=nivel)
+    p.alignment = J
+    r = p.add_run(texto); r.font.name = "Arial"; r.font.size = Pt(12); r.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
+    return p
+
+
+def B(items):
+    for it in items:
+        p = doc.add_paragraph()
+        p.alignment = J
+        p.paragraph_format.left_indent = Cm(1.0)
+        p.paragraph_format.first_line_indent = Cm(-0.5)
+        runs(p, "• " + it)
+
+
+def salto():
+    doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+
+
+def pie(nombre, desc):
+    p = doc.add_paragraph()
+    p.alignment = J
+    r = p.add_run(nombre + " "); r.bold = True; r.font.size = Pt(11); r.font.name = "Arial"
+    r = p.add_run(desc); r.font.size = Pt(11); r.font.name = "Arial"
+    return p
+
+
+cont = {"Tabla": 0, "Figura": 0}
+
+
+def tabla(desc, cab, filas, anchos=None, size=10):
+    cont["Tabla"] += 1
+    pie(f"Tabla #{cont['Tabla']}.", desc).paragraph_format.keep_with_next = True
+    t = doc.add_table(rows=1, cols=len(cab))
+    t.style = "Table Grid"
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for i, c in enumerate(cab):
+        cel = t.rows[0].cells[i]; cel.text = ""
+        pp = cel.paragraphs[0]; pp.alignment = J
+        runs(pp, f"**{c}**", size)
+        sh = OxmlElement("w:shd"); sh.set(qn("w:val"), "clear"); sh.set(qn("w:fill"), "D9D9D9")
+        cel._tc.get_or_add_tcPr().append(sh)
+    for f in filas:
+        cells = t.add_row().cells
+        for i, v in enumerate(f):
+            cells[i].text = ""
+            pp = cells[i].paragraphs[0]; pp.alignment = J
+            runs(pp, str(v), size)
+    if anchos:
+        for row in t.rows:
+            for i, w in enumerate(anchos):
+                row.cells[i].width = Cm(w)
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+
+
+def figura(ruta, desc, ancho=15.5):
+    cont["Figura"] += 1
+    p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.keep_with_next = True
+    p.add_run().add_picture(ruta, width=Cm(ancho))
+    pie(f"Figura #{cont['Figura']}.", desc)
+
+
+def codigo(texto):
+    for linea in texto.strip("\n").split("\n"):
+        p = doc.add_paragraph(); p.alignment = J
+        p.paragraph_format.space_after = Pt(0)
+        p.paragraph_format.line_spacing = 1.0
+        p.paragraph_format.left_indent = Cm(0.4)
+        runs(p, linea if linea else " ", 8.5, mono=True)
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+
+
+# ---------------------------------------------------------------- datos reales
+def leer(patron):
+    filas = []
+    for f in sorted(glob.glob(os.path.join(CASO, "resultados", patron))):
+        with open(f, encoding="utf-8") as fh:
+            filas += list(csv.DictReader(fh))
+    return filas
+
+
+cfg = leer("configuracion_*.csv")
+por_accion = {}
+for r in cfg:
+    por_accion.setdefault(r["accion"], []).append(r)
+orden = ["crear", "listar", "modificar", "apagar", "encender", "borrar"]
+http_esp = {"crear": "201 (PUT)", "listar": "200 (GET)", "modificar": "204 (PATCH)",
+            "apagar": "204 (PATCH)", "encender": "204 (PATCH)", "borrar": "204 (DELETE)"}
+filas_cfg = []
+for a in orden:
+    rs = por_accion.get(a, [])
+    if not rs:
+        continue
+    t = [float(x["tiempo_ms"]) for x in rs]
+    ok = sum(1 for x in rs if x["http"].startswith("2"))
+    filas_cfg.append([a, http_esp[a], len(rs), f"{ok}/{len(rs)}", f"{min(t):.0f}", f"{statistics.mean(t):.0f}", f"{max(t):.0f}"])
+total_ops = len(cfg)
+total_ok = sum(1 for x in cfg if x["http"].startswith("2"))
+todos_t = [float(x["tiempo_ms"]) for x in cfg]
+
+mon = leer("monitoreo.csv")
+corridas = {}
+for r in mon:
+    corridas.setdefault(r["fecha"], []).append(r)
+filas_mon = []
+for fch, rs in corridas.items():
+    caidas = [x["interfaz"] for x in rs if x["oper"] != "up" or x["admin"] != "up"]
+    filas_mon.append([fch.replace("T", " "), len(rs), f"{float(rs[0]['tiempo_estado_ms']):.0f}",
+                      f"{float(rs[0]['tiempo_config_ms']):.0f}", ", ".join(caidas) if caidas else "ninguna"])
+
+CAP = os.path.join(CASO, "capturas")
+TER = os.path.join(CAP, "terminal")
+
+# ---------------------------------------------------------------- PORTADA
+for _ in range(3):
+    doc.add_paragraph()
+for t in ["Instituto Tecnológico de Costa Rica", "Escuela de Ingeniería Electrónica",
+          "CE-5301 Redes de Computadoras", "II Semestre 2026"]:
+    p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    runs(p, f"**{t}**")
+for _ in range(2):
+    doc.add_paragraph()
+p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+runs(p, "**Desafío de Redes**")
+p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+runs(p, "Configuración y monitoreo de interfaces de un router Cisco IOS XE mediante RESTCONF, con alertas a Webex")
+for _ in range(2):
+    doc.add_paragraph()
+p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+runs(p, "**Integrantes**")
+for n in ["Christopher Rodríguez", "Randall Bolaños", "Javier Tenorio"]:
+    p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER; runs(p, n)
+runs(doc.paragraphs[-1], "")
+for _ in range(1):
+    doc.add_paragraph()
+p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+runs(p, "Profesor: Rodolfo Tacsan Chaves")
+p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+runs(p, "Fecha de entrega: 26 de noviembre de 2026")
+p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+runs(p, "[[Verificar apellidos completos, carné y sede/escuela antes de entregar]]")
+salto()
+
+# ---------------------------------------------------------------- ÍNDICE
+p0 = doc.add_paragraph(); runs(p0, "**Índice**")
+p = doc.add_paragraph()
+r = p.add_run()
+for tipo, txt in (("begin", None), (None, ' TOC \\o "1-2" \\h \\z \\u '), ("separate", None), ("end", None)):
+    if tipo:
+        e = OxmlElement("w:fldChar"); e.set(qn("w:fldCharType"), tipo); r._r.append(e)
+    else:
+        e = OxmlElement("w:instrText"); e.set(qn("xml:space"), "preserve"); e.text = txt; r._r.append(e)
+salto()
+
+# ---------------------------------------------------------------- OBJETIVOS
+H("1. Objetivos del Desafío")
+H("1.1 Objetivos de la parte investigativa", 2)
+B([
+    "Describir el protocolo NETCONF (estándar, transporte, RPC y formato de mensajes) con un ejemplo de llamada a un equipo real.",
+    "Describir el protocolo RESTCONF, su diferencia con NETCONF, su relación con YANG y su uso con Postman y con Python.",
+])
+H("1.2 Objetivos de la demostración del caso de uso", 2)
+B([
+    "Automatizar la creación, modificación, apagado y borrado de interfaces de un router Cisco IOS XE mediante RESTCONF, con Postman y con scripts de Python, incluyendo configuración masiva de varias interfaces.",
+    "Monitorear el estado operativo de las interfaces mediante RESTCONF y detectar las que estén caídas.",
+    "Integrar la API de Webex para enviar una alerta automática a una sala cuando una interfaz esté caída.",
+    "Validar cuantitativamente el funcionamiento (códigos HTTP, tiempos de respuesta y tasa de éxito) y demostrar su utilidad real en un video de máximo diez minutos.",
+])
+salto()
+
+# ---------------------------------------------------------------- INVESTIGACIÓN
+H("2. Investigación")
+H("2.3 YANG con NETCONF", 2)
+H("2.3.1 ¿Qué es NETCONF y bajo qué estándar fue creado?", 3)
+P("NETCONF (Network Configuration Protocol) es un protocolo que permite instalar, manipular y borrar la configuración de dispositivos de red. Fue estandarizado por el IETF en el RFC 6241 (Enns et al., 2011), que actualiza el RFC 4741 original. Sus operaciones usan un mecanismo de llamadas a procedimiento remoto (RPC) con mensajes codificados en XML.")
+H("2.3.2 Cómo funcionan las comunicaciones y por qué se crearon", 3)
+P("NETCONF funciona con un modelo cliente-servidor por capas: contenido, operaciones, mensajes (RPC) y transporte seguro (Enns et al., 2011). Al abrir la sesión, ambos extremos intercambian un mensaje `<hello>` con sus capacidades (capabilities); luego el cliente envía `<rpc>` y el servidor responde con `<rpc-reply>`. Los datos se organizan en almacenes de configuración (`running`, `candidate`, `startup`) y el protocolo distingue entre configuración y estado. NETCONF se creó para atender las carencias señaladas en el RFC 3535: ofrecer transacciones, separación entre configuración y estado, y una interfaz programática confiable que SNMP no brindaba para configurar (Schönwälder, 2003; Enns et al., 2011).")
+H("2.3.3 Protocolo de transporte por defecto", 3)
+P("El transporte obligatorio de NETCONF es SSH, en el puerto TCP 830 (Wasserman, 2011). En el router del sandbox el puerto 830 está habilitado, como lo muestra la sesión de la Figura #2.")
+H("2.3.4 Ejemplo de llamada NETCONF y caso de uso", 3)
+P("El script `netconf_ejemplo.py` usa la biblioteca ncclient para abrir una sesión NETCONF contra el router y pedir la configuración de las interfaces con la operación `get-config` sobre el almacén `running`, filtrada con el modelo `ietf-interfaces`:")
+codigo("""
+from ncclient import manager
+FILTRO = '<filter><interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces"/></filter>'
+with manager.connect(host="10.10.20.48", port=830, username=USUARIO, password=CLAVE,
+                     hostkey_verify=False, device_params={"name": "iosxe"}) as m:
+    respuesta = m.get_config(source="running", filter=FILTRO)
+""")
+P("**Caso de uso:** obtener en XML la configuración de todas las interfaces del router sin entrar por CLI. En la prueba del 22 de noviembre de 2026, la sesión se abrió en 2 764 ms (id de sesión 42) y la operación `get-config` respondió en 389 ms; el servidor anunció las capacidades `base:1.0`, `base:1.1`, `writable-running`, `validate`, `xpath` y `yang-library`, entre otras (Figura #2).")
+figura(os.path.join(TER, "10_netconf.png"), "Sesión NETCONF y operación get-config ejecutadas con ncclient contra el Catalyst 8000v.", 15.5)
+H("2.3.5 ¿Qué es una RPC y qué formato de mensajes usa?", 3)
+P("Una RPC (Remote Procedure Call, llamada a procedimiento remoto) es un mecanismo por el cual un cliente solicita que el servidor ejecute una operación y devuelva el resultado. En NETCONF, el cliente envía un elemento `<rpc>` con un atributo `message-id` que contiene la operación (`<get-config>`, `<edit-config>`, `<get>`, `<commit>`, etc.), y el servidor contesta con un `<rpc-reply>` con el mismo `message-id`, que incluye los datos, `<ok/>` o un `<rpc-error>`. Todos los mensajes están codificados en XML (Enns et al., 2011).")
+codigo("""
+<rpc message-id="101" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get-config>
+    <source><running/></source>
+    <filter><interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces"/></filter>
+  </get-config>
+</rpc>
+""")
+
+salto()
+# ---------------------------------------------------------------- CASO DE USO
+H("3. Caso de Uso")
+H("3.1 Problema seleccionado", 2)
+P("Configurar y vigilar interfaces entrando por CLI equipo por equipo es lento, propenso a errores y no avisa cuando algo falla. El caso de uso, aprobado por el profesor el 18 de noviembre de 2026 con tres funcionalidades, automatiza tres tareas de administración sobre un router Cisco IOS XE: configuración, monitoreo y alertas a Webex.")
+H("3.2 Solución escogida", 2)
+B([
+    "**Configuración:** crear, modificar, apagar/encender y borrar interfaces con RESTCONF, desde Postman (PUT, PATCH, DELETE) y desde un script de Python que aplica una lista de interfaces definida en `interfaces.json` (configuración masiva).",
+    "**Monitoreo:** consultar `ietf-interfaces:interfaces-state` y comparar el estado administrativo (`admin-status`) y el operativo (`oper-status`) de cada interfaz.",
+    "**Alertas a Webex:** si una interfaz está caída, el script envía un mensaje a una sala de Webex mediante la API REST de mensajes, usando un bot creado en developer.webex.com.",
+])
+H("3.3 Herramientas y requerimientos", 2)
+tabla("Herramientas y requerimientos del caso de uso.", ["Componente", "Detalle"], [
+    ["Equipo gestionado", "Cisco Catalyst 8000v, IOS XE 17.12.02, sandbox on-demand “Catalyst 8000v” de Cisco DevNet (10.10.20.48)"],
+    ["Acceso a la red", "VPN AnyConnect con OpenConnect GUI 1.6.2; red 10.10.20.0/24; puertos 443 (RESTCONF) y 830 (NETCONF)"],
+    ["Modelos YANG", "ietf-interfaces (RFC 8343) e ietf-ip (RFC 8344)"],
+    ["Cliente", "Postman; Python 3 con requests y ncclient"],
+    ["Alertas", "Bot de Webex “CE5301 Alertas RESTCONF” y sala “CE5301 - Alertas de red”"],
+    ["Repositorio", "Rama ChrisDevelopment en GitHub (código, colección Postman y resultados)"],
+], [4.0, 11.6])
+P("**Nota sobre el sandbox:** los sandboxes compartidos Always On (Catalyst 8000v y 9000v) estaban caídos del lado de Cisco entre el 19 y el 22 de noviembre (reportado por otros usuarios en la Cisco Community), por lo que se reservó el Catalyst 8000v on-demand, privado, con acceso por VPN.")
+figura(os.path.join(CAP, "sandbox_cat8kv_ondemand_reserva.jpg"), "Reserva del sandbox Catalyst 8000v on-demand en developer.cisco.com.", 14)
+figura(os.path.join(CAP, "vpn_openconnect_conectada.jpg"), "Conexión VPN establecida con OpenConnect hacia el sandbox.", 12)
+H("3.4 Arquitectura", 2)
+figura(os.path.join(BASE, "figuras", "arquitectura.png"), "Arquitectura del caso de uso: PC, túnel VPN, router Cisco IOS XE y API de Webex.", 15.5)
+H("3.5 Implementación", 2)
+P("**Colección de Postman** (`CE5301-RESTCONF.postman_collection.json`): usa variables de entorno (`host`, `username`, `password`, `webex_token`, `webex_room_id`) y valida en cada petición un código 2xx y un tiempo de respuesta menor a 5 s.")
+tabla("Peticiones de la colección de Postman.", ["#", "Método", "Recurso", "Respuesta esperada"], [
+    ["1", "GET", "/restconf", "200"],
+    ["2", "GET", "/restconf/data/ietf-interfaces:interfaces", "200"],
+    ["3", "PUT", "…/interfaces/interface=Loopback500", "201 / 204"],
+    ["4", "GET", "…/interfaces/interface=Loopback500", "200"],
+    ["5", "PATCH", "…/interface=Loopback500 (description)", "204"],
+    ["6", "GET", "…/interfaces-state/interface=Loopback500", "200"],
+    ["7", "PATCH", "…/interface=Loopback500 (enabled=false)", "204"],
+    ["8", "GET", "/restconf/data/ietf-interfaces:interfaces-state", "200"],
+    ["9", "DELETE", "…/interface=Loopback500", "204"],
+    ["10", "POST", "https://webexapis.com/v1/messages", "200"],
+], [1.0, 2.0, 9.0, 3.6])
+P("**Scripts de Python** (Anexo 1): `configurar_interfaces.py` (acciones crear, listar, modificar, apagar, encender y borrar sobre todas las interfaces de `interfaces.json`), `monitorear_interfaces.py` (consulta el estado, imprime una tabla, guarda un CSV y envía la alerta a Webex), `crear_sala_webex.py` (crea la sala y agrega integrantes) y `netconf_ejemplo.py`. Cada operación registra el código HTTP y el tiempo de respuesta. La configuración y los resultados se pueden repetir para más equipos editando únicamente `interfaces.json`.")
+P("**Extracto del monitoreo:** el script lee `interfaces-state`, detecta las interfaces cuyo estado no es `up` y publica el mensaje en Webex:")
+codigo("""
+r = requests.get(f"{BASE}/ietf-interfaces:interfaces-state", headers=H, auth=AUTH, verify=False)
+for i in r.json()["ietf-interfaces:interfaces-state"]["interface"]:
+    if i["admin-status"] != "up" or i["oper-status"] != "up":
+        caidas.append(i["name"])
+if caidas:
+    requests.post("https://webexapis.com/v1/messages", headers={"Authorization": f"Bearer {TOKEN}"},
+                  json={"roomId": ROOM_ID, "markdown": "**Alerta:** interfaz(es) caída(s): " + ", ".join(caidas)})
+""")
+H("3.6 Video de la demostración", 2)
+P("Enlace al video: [[PENDIENTE: insertar aquí el enlace (YouTube no listado o Drive) cuando el video esté editado y se haya verificado que abre sin iniciar sesión]]")
+
+salto()
+# ---------------------------------------------------------------- RESULTADOS
+H("4. Resultados y Análisis")
+P(f"Las pruebas se ejecutaron el 22 de noviembre de 2026 contra el Catalyst 8000v on-demand, a través de la VPN. Se realizaron tres corridas de crear, listar, modificar y borrar, y una de apagar y encender, con {total_ops} operaciones RESTCONF en total, de las cuales **{total_ok} fueron exitosas ({100*total_ok/total_ops:.0f} %)**. El tiempo de respuesta osciló entre {min(todos_t):.0f} ms y {max(todos_t):.0f} ms, con una media de {statistics.mean(todos_t):.0f} ms.")
+tabla("Resultados de las operaciones de configuración (tres interfaces por corrida).", ["Acción", "HTTP esperado", "Operaciones", "Exitosas", "Mín. (ms)", "Media (ms)", "Máx. (ms)"], filas_cfg, [2.4, 3.0, 2.4, 2.0, 1.8, 2.0, 2.0], 9)
+P("Las lecturas (GET) fueron las más rápidas (media cercana a 300 ms); las modificaciones con PATCH y la creación con PUT estuvieron entre 0,9 y 1,2 s, y el borrado (DELETE) fue la operación más lenta (media cercana a 2,3 s), pues el router debe aplicar el cambio de configuración. Los códigos HTTP fueron los que define el RFC 8040: 201 al crear un recurso nuevo, 200 al leer y 204 cuando la operación se realizó sin contenido de respuesta (Bierman et al., 2017).")
+tabla("Resultados del monitoreo de interfaces.", ["Fecha y hora", "Interfaces leídas", "Consulta de estado (ms)", "Consulta de configuración (ms)", "Interfaces caídas"], filas_mon, [3.6, 2.4, 3.0, 3.4, 3.2], 9)
+P("En la primera consulta el tiempo fue de 4 231 ms, mayor que el resto, que estuvo alrededor de 1 segundo (937 ms a 1 372 ms). Esto se atribuye al establecimiento de la conexión HTTPS y al primer acceso a los datos operativos tras abrir el túnel. El monitoreo detectó correctamente la caída de la Loopback502 apagada a propósito y, en la corrida sobre todo el router, reportó como no activas GigabitEthernet2 y GigabitEthernet3, que están administrativamente apagadas (shutdown) en el router.")
+P("**Validación de la alerta:** al apagar la Loopback502 con PATCH (`enabled=false`), el monitoreo la identificó como caída y el envío a la API de Webex devolvió HTTP 200; el mensaje apareció en la sala “CE5301 - Alertas de red” (Figuras #12 y #15). Al volver a encenderla y borrarla, el router quedó en su estado inicial.")
+P("**NETCONF:** la sesión SSH al puerto 830 se abrió en 2 764 ms y el `get-config` respondió en 389 ms. La apertura de la sesión es más lenta que una petición RESTCONF porque implica el intercambio de claves SSH y de `<hello>`; luego las operaciones son rápidas.")
+P("**Capturas de cada paso** (entrada y salida de los scripts):")
+pasos = [("01_conectividad.png", "Verificación de conectividad RESTCONF (GET, HTTP 200)."),
+         ("02_crear.png", "Creación de Loopback501 a 503 con PUT (HTTP 201)."),
+         ("03_listar.png", "Consulta de las interfaces creadas con GET (HTTP 200)."),
+         ("04_modificar.png", "Cambio de descripción con PATCH (HTTP 204)."),
+         ("05_monitorear.png", "Monitoreo con las tres interfaces activas."),
+         ("06_apagar.png", "Apagado de Loopback502 con PATCH (HTTP 204)."),
+         ("07_alerta.png", "Detección de la interfaz caída y envío de la alerta a Webex."),
+         ("08_encender.png", "Encendido de Loopback502 con PATCH (HTTP 204)."),
+         ("09_borrar.png", "Borrado de las interfaces con DELETE (HTTP 204).")]
+for f, d in pasos:
+    figura(os.path.join(TER, f), d, 15.0)
+figura(os.path.join(CAP, "webex_alerta_interfaz_caida.jpg"), "Mensaje de alerta recibido en la sala de Webex.", 13)
+P("**Colección de Postman:** el 23 de noviembre de 2026 se ejecutó la colección completa con Newman, el ejecutor de línea de comandos de Postman, contra el mismo router y por la VPN. Se ejecutaron 10 peticiones y 20 aserciones, **sin ningún fallo**, en 8.4 s en total, con un tiempo de respuesta medio de 760 ms (mínimo 157 ms y máximo 2 087 ms). El reporte completo está en `caso-de-uso/resultados/postman/`.")
+figura(os.path.join(BASE, "..", "caso-de-uso", "capturas", "postman", "newman_reporte.png"), "Reporte de la ejecución de la colección de Postman con Newman.", 14)
+tabla("Resultados de la ejecución de la colección de Postman (Newman).", ["#", "Petición", "HTTP", "Tiempo (ms)"], [
+    ["1", "GET capacidades RESTCONF", "200", "595"],
+    ["2", "GET todas las interfaces (configuración)", "200", "247"],
+    ["3", "PUT crear Loopback", "201", "660"],
+    ["4", "GET Loopback (verificar creación)", "200", "157"],
+    ["5", "PATCH modificar descripción", "204", "783"],
+    ["6", "GET estado operativo de la Loopback", "200", "196"],
+    ["7", "PATCH apagar Loopback", "204", "404"],
+    ["8", "GET estado de todas las interfaces", "200", "1 388"],
+    ["9", "DELETE borrar Loopback", "204", "2 087"],
+    ["10", "POST alerta a Webex", "200", "1 085"],
+], [1.0, 8.6, 2.4, 3.6])
+P("**Análisis:** se logró la comunicación entre la PC y el router y el funcionamiento buscado en las tres funcionalidades, con 100 % de éxito en las operaciones medidas. Como limitaciones: la medición proviene de un sandbox compartido y accedido por VPN, por lo que los tiempos incluyen la latencia del túnel; las pruebas se hicieron con tres interfaces loopback; y la colección de Postman se ejecutó con Newman (línea de comandos), no con la interfaz gráfica de Postman.")
+
+# ---------------------------------------------------------------- CONCLUSIONES
+H("5. Conclusiones y Recomendaciones")
+H("5.1 Conclusiones", 2)
+B([
+    "RESTCONF con los modelos YANG estándar permitió crear, modificar, consultar y borrar interfaces de un router IOS XE sin usar la CLI, con 100 % de operaciones exitosas en las pruebas.",
+    "El monitoreo mediante `interfaces-state` detectó las interfaces caídas, y la integración con la API de Webex entregó la alerta en la sala de Webex.",
+    "NETCONF y RESTCONF exponen los mismos modelos YANG; RESTCONF resultó más sencillo de usar con Postman y Python, mientras que NETCONF ofrece sesiones con estado y transacciones.",
+    "**Christopher.** Como responsable de la parte técnica, la principal dificultad no fue el código sino la infraestructura: los sandboxes Always On no estaban disponibles y hubo que pasar a un Catalyst 8000v on-demand por VPN, con una reserva que vence y debe renovarse. Una vez resuelto, el mismo script sirvió para crear, modificar, consultar y borrar interfaces, y para enviar la alerta a Webex con 100 % de éxito en las operaciones medidas. La colección de Postman también se ejecutó completa, con 10 peticiones y 20 aserciones sin fallos.",
+])
+H("5.2 Recomendaciones y mejoras", 2)
+B([
+    "Ejecutar el monitoreo de forma continua (el script admite un intervalo) y usar notificaciones de NETCONF o telemetría para evitar el sondeo.",
+    "Usar certificados válidos y guardar las credenciales y el token del bot en variables de entorno o un gestor de secretos, y no en el código.",
+    "Reemplazar `interfaces-state` por los datos operativos del modelo NMDA, pues el RFC 8343 lo marca como obsoleto (Bjørklund, 2018a).",
+    "Ampliar el inventario a más dispositivos y fabricantes y agregar reintentos ante fallos de red.",
+    "Reservar el sandbox con anticipación y verificar su estado, pues los sandboxes Always On pueden dejar de estar disponibles.",
+])
+
+# ---------------------------------------------------------------- REFERENCIAS
+salto()
+H("6. Referencias Bibliográficas")
+refs = [
+ "Amazon Web Services. (s. f.). ¿Qué es DevOps? https://aws.amazon.com/es/devops/what-is-devops/",
+ "Bierman, A., Bjørklund, M., & Watsen, K. (2017). RESTCONF Protocol (RFC 8040). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8040",
+ "Bjørklund, M. (s. f.). pyang [Software]. GitHub. https://github.com/mbj4668/pyang",
+ "Bjørklund, M. (2016). The YANG 1.1 Data Modeling Language (RFC 7950). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc7950",
+ "Bjørklund, M. (2018a). A YANG Data Model for Interface Management (RFC 8343). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8343",
+ "Bjørklund, M. (2018b). A YANG Data Model for IP Management (RFC 8344). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8344",
+ "Case, J., Fedor, M., Schoffstall, M., & Davin, J. (1990). A Simple Network Management Protocol (SNMP) (RFC 1157). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc1157",
+ "Cisco Systems. (s. f.-a). DevNet: Network automation and DevOps. Cisco DevNet. https://developer.cisco.com/",
+ "Cisco Systems. (s. f.-b). Programmability Configuration Guide, Cisco IOS XE: Model-driven programmability. Cisco. https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/prog/configuration/",
+ "Enns, R., Bjørklund, M., Schönwälder, J., & Bierman, A. (2011). Network Configuration Protocol (NETCONF) (RFC 6241). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6241",
+ "Postman. (s. f.). Postman Learning Center. https://learning.postman.com/docs/",
+ "Progress Chef. (s. f.). Chef Infra documentation. https://docs.chef.io/",
+ "Puppet. (s. f.). Puppet documentation. https://www.puppet.com/docs/puppet/",
+ "Red Hat. (s. f.). Ansible documentation. https://docs.ansible.com/",
+ "Reitz, K. (s. f.). Requests: HTTP for Humans. https://requests.readthedocs.io/",
+ "Salt Project. (s. f.). Salt documentation. https://docs.saltproject.io/",
+ "Schönwälder, J. (2003). Overview of the 2002 IAB Network Management Workshop (RFC 3535). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc3535",
+ "Wasserman, M. (2011). Using the NETCONF Protocol over Secure Shell (SSH) (RFC 6242). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6242",
+ "Webex. (s. f.). Webex for Developers: Messages API. Cisco. https://developer.webex.com/docs/api/v1/messages",
+]
+for r_ in refs:
+    p = doc.add_paragraph(); p.alignment = J
+    p.paragraph_format.left_indent = Cm(1.0); p.paragraph_format.first_line_indent = Cm(-1.0)
+    runs(p, r_)
+P("[[Revisar: el RFC 6242 y el RFC 8344 se citan como referencia de apoyo; verificar cada URL y fecha antes de entregar. Los (s. f.) se pueden reemplazar por la fecha de consulta.]]")
+
+# ---------------------------------------------------------------- ANEXO 1
+salto()
+H("Anexo 1: Configuraciones o Código Fuente")
+P("El código completo se encuentra en el repositorio del proyecto, rama `ChrisDevelopment`, carpeta `caso-de-uso/`: [[PENDIENTE: insertar el enlace de GitHub tras el merge a main]]. Contenido:")
+tabla("Archivos del Anexo 1.", ["Archivo", "Descripción"], [
+    ["configurar_interfaces.py", "Crear, listar, modificar, apagar, encender y borrar interfaces vía RESTCONF"],
+    ["monitorear_interfaces.py", "Monitoreo de estado y alerta a Webex"],
+    ["crear_sala_webex.py", "Creación de la sala de alertas y adición de miembros"],
+    ["netconf_ejemplo.py", "Ejemplo NETCONF get-config con ncclient"],
+    ["config.py, interfaces.json, .env.example, requirements.txt", "Configuración, lista de interfaces y dependencias"],
+    ["postman/*.json", "Colección y entorno de Postman"],
+    ["yang/", "Árboles YANG generados con pyang"],
+    ["resultados/", "CSV y logs de las pruebas"],
+], [6.0, 9.6])
+for nombre in ["configurar_interfaces.py", "monitorear_interfaces.py"]:
+    P(f"**{nombre}**")
+    with open(os.path.join(CASO, nombre), encoding="utf-8") as fh:
+        codigo(fh.read())
+
+# ---------------------------------------------------------------- ANEXO 2
+salto()
+H("Anexo 2: Trabajo individual y en equipo")
+H("A2.1 Metas del proyecto", 2)
+tabla("Metas y entregables del proyecto.", ["Meta", "Entregable asociado"], [
+    ["Investigar la programabilidad basada en modelos, YANG, NETCONF, RESTCONF y herramientas de automatización", "Sección de Investigación del informe"],
+    ["Implementar un caso de uso de configuración, monitoreo y alertas con RESTCONF", "Scripts de Python, colección de Postman y resultados (Anexo 1)"],
+    ["Demostrar el caso de uso en un video de máximo 10 minutos", "Video con participación de los tres integrantes"],
+    ["Documentar el proyecto", "Informe en PDF y Anexo 2"],
+], [8.0, 7.6])
+H("A2.2 Roles y responsabilidades", 2)
+tabla("Roles del equipo.", ["Integrante", "Rol", "Responsabilidades principales"], [
+    ["Christopher", "Coordinador y líder técnico", "Caso de uso (Postman y Python), sandbox, Anexo 1, investigación del bloque NETCONF y convocatoria de reuniones"],
+    ["Randall", "Líder de investigación y editor del informe", "Investigación de programabilidad y YANG, integración y formato del informe, referencias APA"],
+    ["Javier", "Líder de documentación y video", "Investigación de RESTCONF y herramientas, Anexo 2 (minutas y cronograma), guion y edición del video"],
+], [2.6, 4.4, 8.6])
+H("A2.3 Reglas del equipo", 2)
+B([
+    "Comunicación: las reuniones del equipo son por llamada de voz y video de Discord, en el canal “Proyecto Redes”; Christopher las convoca.",
+    "Cada reunión deja una minuta con fecha, asistentes, agenda, acuerdos y tareas con responsable y fecha límite, además de una captura como evidencia; Javier coordina las minutas y la redacción rota entre Javier, Randall y Christopher.",
+    "Plazos: toda tarea tiene un responsable y una fecha límite fijada en la minuta; el trabajo se termina con anticipación para dejar tiempo de revisión antes de la entrega del 26 de nov.",
+    "Código: se trabaja en un repositorio de Git con commits descriptivos; Christopher es responsable del merge a main.",
+    "Revisión cruzada: cada pieza la revisa una persona distinta de quien la hizo (Randall prueba los scripts con el README; Christopher revisa el PDF contra la rúbrica).",
+    "Investigación: cada dato lleva su cita y no se usa Wikipedia.",
+    "Bitácora y evaluación: cada integrante lleva su bitácora y llena el formulario de evaluación individual y coevaluación.",
+])
+H("A2.4 Cronograma", 2)
+tabla("Cronograma de actividades.", ["Fase", "Actividad", "Responsable", "Fechas"], [
+    ["0", "Arranque: caso de uso, roles, carpeta y repositorio", "Todos", "12 a 14 nov"],
+    ["1", "Investigación (bloques A, B, C y D)", "Randall (A, B), Christopher (C), Javier (D)", "14 a 18 nov"],
+    ["2", "Caso de uso: scripts, colección Postman y alertas Webex", "Christopher", "15 a 22 nov"],
+    ["3", "Informe", "Randall (edición), todos", "18 a 23 nov"],
+    ["4", "Video", "Javier (edición), todos", "21 a 24 nov"],
+    ["5", "Cierre, PDF y entrega en TEC Digital", "Randall, Christopher, Javier", "24 a 26 nov"],
+], [1.2, 6.8, 4.6, 3.0])
+H("A2.5 Minutas", 2)
+H("Minuta 1: Reunión de arranque y definición del caso de uso", 3)
+tabla("Datos de la Minuta 1.", ["Campo", "Detalle"], [
+    ["Fecha", "18 de noviembre de 2026"],
+    ["Hora y duración", "La captura muestra el reloj en 10:24 y la llamada en 32:28, por lo que la reunión comenzó cerca de las 9:51 y duró al menos 32 minutos."],
+    ["Medio", "Llamada de voz y video por Discord, canal “Proyecto Redes”"],
+    ["Asistentes", "Christopher Rodríguez, Javier Tenorio y Randall Bolaños"],
+    ["Redactor", "Javier"],
+    ["Evidencia", "Figura siguiente (captura de Discord del 18 de noviembre)"],
+], [4.0, 11.6])
+P("[[PENDIENTE: adjuntar aquí la captura real de esta reunión; la imagen anterior fue retirada.]]")
+P("**Agenda:** lectura del enunciado y de la rúbrica del Desafío de Redes (CE-5301); elección del caso de uso; definición de roles y reglas del equipo; cronograma y fechas de reuniones.")
+P("**Desarrollo:**")
+B([
+    "Se revisó el enunciado: informe en PDF, video de máximo 10 minutos con todos en cámara, y Anexo 2 con al menos tres minutas y tres bitácoras.",
+    "Se propuso como caso de uso la configuración y el monitoreo de interfaces de un router Cisco IOS XE por RESTCONF, sobre el modelo YANG ietf-interfaces, con Postman y scripts de Python (requests). Se eligió porque reemplaza la configuración por CLI equipo por equipo y cubre las áreas de configuración y monitoreo del enunciado.",
+    "Se consultó al profesor si bastaba ese alcance. Respondió que el caso de uso estaba aprobado, pero que debía tener al menos tres funcionalidades; se acordó cubrir configuración, monitoreo y una tercera de alertas a Webex, que el profesor también aprobó.",
+    "Se propuso el sandbox gratuito “IOS XE on Cat8kv Always-On” de developer.cisco.com.",
+    "Se repartió la investigación: bloques A y B para Randall, bloque C (NETCONF) para Christopher y bloque D (RESTCONF y herramientas de automatización) para Javier.",
+])
+tabla("Acuerdos de la Minuta 1.", ["#", "Acuerdo"], [
+    ["1", "Se adopta el caso de uso RESTCONF sobre ietf-interfaces, aprobado por el profesor, con tres funcionalidades: configuración, monitoreo y alerta a Webex."],
+    ["2", "Roles: Christopher, coordinador y líder técnico; Randall, líder de investigación y editor del informe; Javier, documentación del equipo y video."],
+    ["3", "Reglas del equipo: las descritas en la sección A2.3."],
+    ["4", "Reuniones mínimas: 20 nov (avance de investigación y demo preliminar) y 23 nov (revisión de informe y video)."],
+    ["5", "Cada integrante lleva su bitácora personal."],
+], [1.2, 14.4])
+tabla("Tareas asignadas en la Minuta 1.", ["Tarea", "Responsable", "Fecha límite"], [
+    ["Crear cuenta en developer.cisco.com y reservar el sandbox", "Christopher", "20 nov"],
+    ["Instalar Postman y Python (requests, ncclient, pyang)", "Christopher", "20 nov"],
+    ["Carpeta compartida y repositorio de código", "Christopher", "20 nov"],
+    ["Plantilla del informe (Arial 12, justificado)", "Randall", "20 nov"],
+    ["Investigación bloques A y B", "Randall", "20 nov"],
+    ["Plantillas de minuta y bitácora; borrador de metas, roles y cronograma", "Javier", "20 nov"],
+    ["Investigación bloque D", "Javier", "20 nov"],
+    ["Investigación bloque C", "Christopher", "20 nov"],
+], [9.0, 3.4, 3.2])
+P("Próxima reunión: 20 de noviembre, avance de investigación y demo preliminar.")
+
+H("Minuta 2: Avance de investigación y demo preliminar", 3)
+tabla("Datos de la Minuta 2.", ["Campo", "Detalle"], [
+    ["Fecha", "20 de noviembre de 2026"],
+    ["Hora y duración", "La captura muestra el reloj en 07:07 y la llamada en 28:37, por lo que la reunión comenzó cerca de las 6:38 y duró al menos 28 minutos."],
+    ["Medio", "Llamada de voz y video por Discord, canal “Proyecto Redes”"],
+    ["Asistentes", "Christopher Rodríguez, Javier Tenorio y Randall Bolaños"],
+    ["Redactor", "Randall"],
+    ["Evidencia", "Figura siguiente (captura de Discord del 20 de noviembre)"],
+], [4.0, 11.6])
+P("[[PENDIENTE: adjuntar aquí la captura real de esta reunión; la imagen anterior fue retirada.]]")
+P("**Agenda:** seguimiento de las tareas de la Minuta 1; estado de la investigación por bloque; avance del caso de uso (scripts, colección de Postman y alertas a Webex); problemas y riesgos; ajustes al cronograma.")
+P("**Desarrollo:**")
+B([
+    "Seguimiento: se confirmó el alcance de tres funcionalidades aprobado por el profesor (configuración, monitoreo y alerta a Webex).",
+    "Investigación: Randall presentó los bloques A y B (programabilidad basada en modelos y YANG), Christopher el bloque C (NETCONF) y Javier el bloque D (RESTCONF y herramientas de automatización); Randall quedó a cargo de integrarlos en un solo documento.",
+    "Avance del caso de uso: Christopher reportó los scripts de RESTCONF, la colección de Postman y el ejemplo de NETCONF en el repositorio, y el bot de Webex con la sala de alertas, probada con un mensaje de prueba. Faltaba probar todo contra un router.",
+    "Riesgo: los sandboxes Always On de Cisco presentaban fallas y se debía conseguir un router alterno para probar los scripts.",
+])
+tabla("Acuerdos de la Minuta 2.", ["#", "Acuerdo"], [
+    ["1", "Queda confirmado el alcance de tres funcionalidades (configuración, monitoreo y alerta a Webex)."],
+    ["2", "Las alertas se envían con un bot de Webex a una sala del equipo."],
+    ["3", "Christopher busca un router alterno si el sandbox Always On sigue sin responder."],
+    ["4", "Randall integra los bloques de investigación en un solo documento con estilo uniforme."],
+], [1.2, 14.4])
+tabla("Tareas asignadas en la Minuta 2.", ["Tarea", "Responsable", "Fecha límite"], [
+    ["Probar la colección Postman (GET, PUT, PATCH, DELETE) y los scripts contra un router", "Christopher", "22 nov"],
+    ["Resolver el acceso al sandbox y reservarlo", "Christopher", "22 nov"],
+    ["Crear el bot y la sala en developer.webex.com", "Christopher", "20 nov"],
+    ["Diagrama de arquitectura (PC, VPN, router, flujo REST)", "Javier", "22 nov"],
+    ["Guion del video con tiempos (meta 9 min)", "Javier", "21 nov"],
+    ["Integrar y dar formato al informe; referencias APA", "Randall", "22 nov"],
+    ["Probar los scripts siguiendo el README (validación independiente)", "Randall", "23 nov"],
+], [9.0, 3.4, 3.2])
+P("Próxima reunión: 23 de noviembre, revisión de informe y video.")
+
+H("Minuta 3: Revisión de informe y video", 3)
+tabla("Datos de la Minuta 3.", ["Campo", "Detalle"], [
+    ["Fecha", "23 de noviembre de 2026"],
+    ["Hora y duración", "La captura se tomó a las 6:12 p. m. con la llamada en 24:52, por lo que la reunión comenzó cerca de las 5:47 p. m. y duró al menos 25 minutos."],
+    ["Medio", "Llamada de voz y video por Discord, canal “Proyecto Redes”"],
+    ["Asistentes", "Christopher Rodríguez, Javier Tenorio y Randall Bolaños"],
+    ["Redactor", "Christopher"],
+    ["Evidencia", "Figura siguiente (captura de Discord del 23 de noviembre)"],
+], [4.0, 11.6])
+figura(os.path.join(BASE, "..", "Capturas", "WhatsApp Image 2026-11-23 at 6.12.33 PM.jpeg"), "Captura de la reunión del 23 de noviembre de 2026 en Discord.", 14)
+P("**Agenda:** estado del informe (36 páginas en borrador) y marcadores pendientes; resultados del caso de uso y datos cuantitativos; guion, reparto y grabación del video; Anexo 2; plan hasta la entrega del 26 de noviembre.")
+P("**Desarrollo:**")
+B([
+    "Resultados del caso de uso (probados el 22 nov): crear con PUT 201, listar con GET 200, modificar y apagar o encender con PATCH 204, borrar con DELETE 204, con 100 % de éxito. El GET RESTCONF respondió HTTP 200 en unos 0,7 s por VPN y el NETCONF get-config en 389 ms. El monitoreo detectó la Loopback502 apagada y envió la alerta a Webex (HTTP 200).",
+    "Sandbox: los sandboxes Always On (Cat8000v y Cat9000v) siguieron caídos del lado de Cisco, por lo que se usó el Catalyst 8000v on-demand (privado, IOS XE 17.12.02), reservado el 22 de nov, por VPN con OpenConnect. La reserva dura 48 horas y hay que renovarla antes de grabar el video.",
+    "Pendiente técnico: correr la colección de Postman con la VPN activa y capturarla antes de que venza la reserva (24 nov, 13:22).",
+    "Video: Randall introduce (0:00 a 2:00), Javier presenta arquitectura y requerimientos (2:00 a 4:00), Christopher hace la demostración (4:00 a 8:30) y Randall o Javier cierran (8:30 a 9:00). Todos con cámara; máximo 10 minutos, meta 9. Existen el guion, seis diapositivas básicas y una grabación de respaldo de la demo sin audio (2:45).",
+    "Informe: faltan las reglas del equipo, las reflexiones del Anexo 2, los párrafos de conclusión de Randall y Javier, la verificación de URLs y fechas de las referencias, el enlace del video y el enlace de GitHub tras el merge a main.",
+    "Anexo 2: las tres minutas quedaron con su captura de Discord (18, 20 y 23 de nov), con metas, roles, reglas y cronograma. Faltan que Randall y Javier completen las duraciones de su bitácora y la reflexión grupal sobre eficiencia.",
+])
+tabla("Acuerdos de la Minuta 3.", ["#", "Acuerdo"], [
+    ["1", "Se usa el sandbox on-demand por VPN en lugar del Always On y se renueva la reserva antes de grabar el video."],
+    ["2", "Cada integrante graba su parte con cámara y cronometra un ensayo."],
+    ["3", "Christopher hace el merge a main y entrega el enlace del repositorio."],
+    ["4", "Revisión visual del PDF página por página (justificado, pies de figura en Arial 11)."],
+    ["5", "Cada quien completa su bitácora y el formulario de evaluación individual y coevaluación."],
+], [1.2, 14.4])
+tabla("Tareas asignadas en la Minuta 3.", ["Tarea", "Responsable", "Fecha límite"], [
+    ["Correr la colección Postman con VPN activa y capturar", "Christopher", "24 nov"],
+    ["Merge a main y enlace de GitHub en el Anexo 1", "Christopher", "24 nov"],
+    ["Grabar la demostración con voz y cámara", "Christopher", "24 nov"],
+    ["Grabar la introducción y el cierre", "Randall", "24 nov"],
+    ["Insertar el enlace del video (sección 3.6) y exportar el PDF final", "Randall", "25 nov"],
+    ["Grabar arquitectura y requerimientos; editar y unir el video (máx. 10:00)", "Javier", "25 nov"],
+    ["Verificar el enlace del video desde otra cuenta", "Javier", "25 nov"],
+    ["Anexo 2 completo: reglas, minutas, bitácoras y reflexión", "Javier y todos", "25 nov"],
+    ["Revisión cruzada del PDF contra la rúbrica", "Christopher", "25 nov"],
+    ["Subir una sola copia a TEC Digital", "Christopher", "26 nov"],
+], [9.0, 3.4, 3.2])
+P("Próxima reunión (opcional): 25 de noviembre, cierre y lecciones aprendidas.")
+H("A2.6 Bitácoras individuales", 2)
+P("**Christopher.** Entradas reconstruidas a partir del historial del repositorio, las capturas y las minutas; las duraciones sin dato deben completarse.")
+tabla("Bitácora de Christopher.", ["Fecha", "Actividad", "Duración"], [
+    ["12 nov", "Creación del repositorio y primeras tareas", "[[completar]]"],
+    ["18 nov", "Reunión 1 por Discord (Minuta 1): caso de uso aprobado y reparto de tareas", "Más de 32 min"],
+    ["20 nov", "Reunión 2 por Discord (Minuta 2): avance de investigación y del caso de uso", "Más de 28 min"],
+    ["20 nov", "Scripts RESTCONF, colección Postman, ejemplo NETCONF; bot y sala de Webex; captura del mensaje de prueba", "[[completar]]"],
+    ["22 nov", "Diagnóstico de la falla de los sandboxes Always On; reserva del Cat8000v on-demand; pruebas del caso de uso (RESTCONF, NETCONF, alerta a Webex); árboles YANG con pyang; capturas, guion de la demo y grabación de respaldo; subida al repositorio", "[[completar]]"],
+    ["23 nov", "Reunión 3 por Discord (Minuta 3): revisión de informe y video", "Más de 24 min"],
+], [2.2, 10.4, 3.0])
+H("A2.7 Evaluación de la eficiencia", 2)
+P("[[PENDIENTE: reflexión grupal sobre eficiencia, equidad e inclusión y colaboración (TE5 a TE7), escrita por el equipo una vez terminado el desafío. Cada integrante debe además llenar el formulario individual y de coevaluación.]]")
+
+doc.save(os.path.join(BASE, "Informe.docx"))
+print("Informe.docx generado")

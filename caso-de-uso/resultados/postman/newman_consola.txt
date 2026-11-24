@@ -1,0 +1,111 @@
+newman
+
+CE5301 - RESTCONF IOS XE (ietf-interfaces)
+
+→ 1. GET capacidades RESTCONF (root)
+  GET https://10.10.20.48:443/restconf [200 OK, 611B, 595ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '1. GET capacidades RESTCONF (root) -> HTTP 200 en 595
+  │  ms'
+  └
+
+→ 2. GET todas las interfaces (configuración)
+  GET https://10.10.20.48:443/restconf/data/ietf-interfaces:interfaces [200 OK, 2.72kB, 247ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '2. GET todas las interfaces (configuración) -> HTTP 2
+  │ 00 en 247 ms'
+  └
+
+→ 3. PUT crear Loopback
+  PUT https://10.10.20.48:443/restconf/data/ietf-interfaces:interfaces/interface=Loopback500 [201 Created, 683B, 660ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '3. PUT crear Loopback -> HTTP 201 en 660 ms'
+  └
+
+→ 4. GET Loopback (verificar creación)
+  GET https://10.10.20.48:443/restconf/data/ietf-interfaces:interfaces/interface=Loopback500 [200 OK, 920B, 157ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '4. GET Loopback (verificar creación) -> HTTP 200 en 1
+  │ 57 ms'
+  └
+
+→ 5. PATCH modificar descripción
+  PATCH https://10.10.20.48:443/restconf/data/ietf-interfaces:interfaces/interface=Loopback500 [204 No Content, 499B, 783ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '5. PATCH modificar descripción -> HTTP 204 en 783 ms'
+  └
+
+→ 6. GET estado operativo de la Loopback
+  GET https://10.10.20.48:443/restconf/data/ietf-interfaces:interfaces-state/interface=Loopback500 [200 OK, 1.33kB, 196ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '6. GET estado operativo de la Loopback -> HTTP 200 en
+  │  196 ms'
+  └
+
+→ 7. PATCH apagar Loopback (shutdown)
+  PATCH https://10.10.20.48:443/restconf/data/ietf-interfaces:interfaces/interface=Loopback500 [204 No Content, 499B, 404ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '7. PATCH apagar Loopback (shutdown) -> HTTP 204 en 40
+  │ 4 ms'
+  └
+
+→ 8. GET estado de todas las interfaces
+  GET https://10.10.20.48:443/restconf/data/ietf-interfaces:interfaces-state [200 OK, 7.24kB, 1388ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '8. GET estado de todas las interfaces -> HTTP 200 en 
+  │ 1388 ms'
+  └
+
+→ 9. DELETE borrar Loopback
+  DELETE https://10.10.20.48:443/restconf/data/ietf-interfaces:interfaces/interface=Loopback500 [204 No Content, 499B, 2s]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '9. DELETE borrar Loopback -> HTTP 204 en 2087 ms'
+  └
+
+→ 10. POST alerta a Webex
+  POST https://webexapis.com/v1/messages [200 OK, 1.1kB, 1085ms]
+  √  Respuesta exitosa (2xx)
+  √  Tiempo de respuesta < 5 s
+  ┌
+  │ '10. POST alerta a Webex -> HTTP 200 en 1085 ms'
+  └
+
+┌─────────────────────────┬───────────────────┬───────────────────┐
+│                         │          executed │            failed │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│              iterations │                 1 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│                requests │                10 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│            test-scripts │                10 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│      prerequest-scripts │                 0 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│              assertions │                20 │                 0 │
+├─────────────────────────┴───────────────────┴───────────────────┤
+│ total run duration: 8.4s                                        │
+├─────────────────────────────────────────────────────────────────┤
+│ total data received: 11.02kB (approx)                           │
+├─────────────────────────────────────────────────────────────────┤
+│ average response time: 760ms [min: 157ms, max: 2s, s.d.: 580ms] │
+└─────────────────────────────────────────────────────────────────┘
+(node:34776) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)

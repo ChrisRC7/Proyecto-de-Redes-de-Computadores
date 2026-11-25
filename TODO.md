@@ -58,7 +58,7 @@ ewman`)*
 
 **Javier**
 - [ ] Crear plantillas de minuta y de bitácora
-- [ ] Redactar borrador de metas, roles, reglas y cronograma para el Anexo 2
+- [x] Redactar borrador de metas, roles, reglas y cronograma para el Anexo 2 — *ya están en el informe (A2.1 a A2.4)*
 
 ---
 
@@ -87,12 +87,13 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Ejemplo de llamada NETCONF a un equipo (comando + caso de uso), probado en el sandbox — *`netconf_ejemplo.py --capacidades` OK 22 nov: sesión en 2,8 s, `<get-config>` en 389 ms; salida en `caso-de-uso/resultados/netconf_get_config.txt`*
 - [x] Qué es una RPC y formato de los mensajes
 
-**Javier — Bloque D: RESTCONF y herramientas**
-- [ ] ¿Qué es RESTCONF, diferencia con NETCONF y mayor ventaja?
-- [ ] Relación entre modelos YANG y llamadas API RESTCONF
-- [ ] Qué es Postman, requerimientos y uso para llamadas API
-- [ ] Llamadas RESTCONF con Postman y con Python (apoyarse en lo que arme Christopher)
-- [ ] Tres herramientas de automatización (p. ej. Ansible, Puppet, Chef/SaltStack): push o pull, diseño del sistema central, sistemas operativos
+**Javier — Bloque D: RESTCONF y herramientas** — *borrador en el informe, sección 2.4 (24 nov), con fuentes verificadas; Javier lo revisa y ajusta*
+- [x] ¿Qué es RESTCONF, diferencia con NETCONF y mayor ventaja?
+- [x] Relación entre modelos YANG y llamadas API RESTCONF
+- [x] Qué es Postman, requerimientos y uso para llamadas API
+- [x] Llamadas RESTCONF con Postman y con Python (apoyarse en lo que arme Christopher)
+- [x] Tres herramientas de automatización: Ansible, Puppet y Salt (y mención de Chef): push o pull, diseño del sistema central, sistemas operativos
+- [ ] Javier: revisar el borrador del bloque D y avisar si cambia algo
 
 **Todos**
 - [x] **Reunión 2 (avance de investigación + demo preliminar)** → **Minuta 2** — *Minuta 2 redactada; falta la captura real*
@@ -118,7 +119,7 @@ Cada dato con su cita; nada de Wikipedia.
 - [ ] Verificar que la alerta llegue a la sala de Webex (captura del mensaje)
 
 **Javier**
-- [ ] Documentar el problema, la solución y las herramientas mientras Christopher lo implementa
+- [x] Documentar el problema, la solución y las herramientas mientras Christopher lo implementa — *secciones 3.1 a 3.3 del informe*
 - [x] Hacer el diagrama de la arquitectura (PC ↔ Internet ↔ sandbox, flujo de la llamada REST)
 
 ---
@@ -142,16 +143,16 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Armar Anexo 1 (scripts, colección exportada, enlace al repositorio)
 
 **Randall**
-- [ ] Portada: verificar apellidos completos, carnés y escuela — *dice «Escuela de Ingeniería Electrónica», pero CE-5301 es de Ingeniería en Computadores*
+- [x] Portada: verificar apellidos completos, carnés y escuela — *24 nov: «Escuela de Ingeniería en Computadores» y nombres completos con carné; Christopher confirma que su nombre y carné están bien*
 - [x] Objetivos 1.1: agregar los de los bloques A y B — *listo 24 nov*
-- [ ] Integrar todos los bloques de investigación con estilo uniforme — *2.1 (A), 2.2 (B) y 2.3 (C) ya están; falta 2.4 (D, Javier)*
-- [ ] Unificar referencias en APA y verificar que **cada dato teórico tenga cita**
+- [x] Integrar todos los bloques de investigación con estilo uniforme — *2.1 (A), 2.2 (B), 2.3 (C) y 2.4 (D) en el informe*
+- [x] Unificar referencias en APA y verificar que **cada dato teórico tenga cita** — *24 nov: las 24 referencias se citan en el texto y sus URL abren*
 - [x] Numerar tablas y figuras con el formato "**Tabla #1.** Descripción"
-- [ ] Revisar **página por página** que todo esté justificado
+- [x] Revisar **página por página** que todo esté justificado — *24 nov: 0 párrafos sin justificar en el Word; repetir al final con el PDF definitivo*
 - [x] Generar índice automático
 
 **Javier**
-- [ ] Anexo 2: metas, roles, reglas, cronograma con responsables y fechas
+- [x] Anexo 2: metas, roles, reglas, cronograma con responsables y fechas
 - [ ] Anexo 2: las 3+ minutas y las 3 bitácoras individuales
 - [ ] Anexo 2: reflexión grupal sobre eficiencia, equidad y colaboración (TE5–TE7)
 
@@ -197,6 +198,9 @@ Cada dato con su cita; nada de Wikipedia.
 - [ ] Revisión final de ortografía y formato; exportar a **PDF**
 
 **Christopher**
+- [ ] Reservar de nuevo el sandbox antes de grabar la demo — *la reserva venció el 24 nov a las 13:22*
+- [ ] Dar acceso al profesor o hacer público el repositorio — *hoy es privado; el enlace ya está en la Tabla 1 y el Anexo 1*
+- [ ] Hacer el merge a `main` (el informe dice «rama main»)
 - [ ] Revisión cruzada del PDF contra la tabla de puntaje de [REQUERIMIENTOS.md](REQUERIMIENTOS.md)
 - [ ] Subir **una sola copia** a TEC Digital, ítem "Presentación Final: Desafío Redes"
 

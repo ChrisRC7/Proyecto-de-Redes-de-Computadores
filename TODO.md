@@ -5,6 +5,8 @@ Detalle de cada requisito y rúbricas en [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 **Entrega:** jueves 26 de noviembre de 2026.
 **Integrantes:** Christopher · Randall · Javier
 
+**Branches:** `main` ← `Development` ← un branch por integrante (`ChrisDevelopment`, `yitanDevelopment`, …). Cada quien trabaja en el suyo y lo integra a `Development`; Christopher hace el merge a `main`. **24 nov:** `Development` quedó al día con todo lo de `ChrisDevelopment` (commit `e1bcfb1`); se sigue desde ahí.
+
 > **Caso de uso aprobado por el profesor (18 nov).** Pidió al menos tres funcionalidades; la tercera (alertas a Webex) también fue aprobada. Registrar esta respuesta en la Minuta 1.
 
 ---
@@ -43,7 +45,7 @@ Carga equilibrada: cada persona investiga, escribe una parte del informe, lleva 
 
 **Todos**
 - [x] **Reunión 1 (kickoff):** confirmar caso de uso, roles, reglas del equipo y cronograma → **Minuta 1** — *Minuta 1 redactada en el Anexo 2; falta la captura real de esa reunión*
-- [ ] Crear carpeta compartida (Drive/OneDrive) y repositorio para el código
+- [ ] Crear carpeta compartida (Drive/OneDrive) y repositorio para el código — *repositorio listo en GitHub (`ChrisRC7/Proyecto-de-Redes-de-Computadores`); falta confirmar la carpeta compartida*
 - [ ] Cada quien abre su **bitácora** personal desde hoy (fecha, actividad, duración)
 
 **Christopher**
@@ -108,7 +110,7 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Integrar el envío de alerta a Webex en el script de monitoreo (cuando una interfaz esté caída) — *mensaje de prueba recibido (HTTP 200)*
 - [x] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *listo 22 nov: 11 capturas de terminal (`caso-de-uso/capturas/terminal/`), alerta en Webex, VPN y reserva; CSV y logs en `caso-de-uso/resultados/`. Postman: `caso-de-uso/capturas/postman/`*
 - [x] Preparar la demo del video — *`caso-de-uso/demo/demo_caso_de_uso.ps1` (pasos con pausa), guion con tiempos en `caso-de-uso/demo/GUION_DEMO.md` y grabación de respaldo sin audio `caso-de-uso/capturas/video/demo_terminal_sin_audio.mp4` (2:45) con su guion de lectura sincronizado `GUION_LECTURA.md`. La parte con cámara y voz la graba Christopher*
-- [x] Subir código al repositorio con README — *push de `ChrisDevelopment` a GitHub (22 nov); falta merge a `main`*
+- [x] Subir código al repositorio con README — *push de `ChrisDevelopment` a GitHub (22 nov); `Development` actualizado el 24 nov; falta merge a `main`*
 
 **Randall**
 - [ ] Probar la colección y los scripts en su máquina siguiendo el README (validación independiente)
@@ -140,7 +142,9 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Armar Anexo 1 (scripts, colección exportada, enlace al repositorio)
 
 **Randall**
-- [ ] Integrar todos los bloques de investigación con estilo uniforme
+- [ ] Portada: verificar apellidos completos, carnés y escuela — *dice «Escuela de Ingeniería Electrónica», pero CE-5301 es de Ingeniería en Computadores*
+- [ ] Objetivos 1.1: agregar los de los bloques A y B (hoy solo están los de NETCONF y RESTCONF)
+- [ ] Integrar todos los bloques de investigación con estilo uniforme — *en el informe solo está 2.3 (NETCONF); faltan 2.1 (A), 2.2 (B) y 2.4 (D)*
 - [ ] Unificar referencias en APA y verificar que **cada dato teórico tenga cita**
 - [x] Numerar tablas y figuras con el formato "**Tabla #1.** Descripción"
 - [ ] Revisar **página por página** que todo esté justificado
@@ -150,6 +154,15 @@ Cada dato con su cita; nada de Wikipedia.
 - [ ] Anexo 2: metas, roles, reglas, cronograma con responsables y fechas
 - [ ] Anexo 2: las 3+ minutas y las 3 bitácoras individuales
 - [ ] Anexo 2: reflexión grupal sobre eficiencia, equidad y colaboración (TE5–TE7)
+
+**Todos**
+- [x] Párrafo de conclusión (5.1): Christopher
+- [ ] Párrafo de conclusión (5.1): Randall
+- [ ] Párrafo de conclusión (5.1): Javier
+- [ ] Bitácora en A2.6: Christopher — *está en el informe; faltan duraciones marcadas «completar»*
+- [ ] Bitácora en A2.6: Randall
+- [ ] Bitácora en A2.6: Javier
+- [ ] Capturas reales de las reuniones 1 (18 nov) y 2 (20 nov) para las minutas — *las de `Capturas/` se retiraron del informe*
 
 ---
 
@@ -202,8 +215,8 @@ Cada dato con su cita; nada de Wikipedia.
 
 | # | Cuándo | Tema | Minuta |
 |---|---|---|---|
-| 1 | 12 nov | Kickoff: caso de uso, roles, reglas, cronograma | Javier |
-| 2 | 18 nov | Avance de investigación y demo preliminar | Randall |
+| 1 | 18 nov | Kickoff: caso de uso, roles, reglas, cronograma | Javier |
+| 2 | 20 nov | Avance de investigación y demo preliminar | Randall |
 | 3 | 23 nov | Revisión de informe y video | Christopher |
 | 4 (opcional) | 25 nov | Cierre y lecciones aprendidas | Javier |
 

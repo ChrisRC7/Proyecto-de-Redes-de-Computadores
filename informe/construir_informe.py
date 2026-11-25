@@ -424,17 +424,29 @@ codigo("""
 H("2.4 YANG con RESTCONF", 2)
 H("2.4.1 ¿Qué es RESTCONF? Diferencia con NETCONF y su mayor ventaja", 3)
 P("RESTCONF es un protocolo basado en HTTP que ofrece una interfaz programática para acceder a los datos definidos en YANG, usando los mismos conceptos de almacenes de datos (datastores) que NETCONF. Fue estandarizado por el IETF en el RFC 8040, en enero de 2017. Sus operaciones usan los métodos de HTTP (GET, POST, PUT, PATCH y DELETE) sobre recursos identificados por un URL, los datos viajan codificados en XML o en JSON con los tipos de medio `application/yang-data+xml` y `application/yang-data+json`, y el protocolo debe usarse siempre sobre TLS, es decir, con HTTPS (Bierman et al., 2017).")
-P("RESTCONF no pretende reemplazar a NETCONF: ofrece un subconjunto de sus funciones, sin exponer los almacenes de datos ni el bloqueo explícito, y es compatible con NETCONF. Los métodos trabajan sobre una vista unificada de la configuración; si el equipo tiene un almacén `candidate`, cada edición se confirma automáticamente en `running` en cuanto termina con éxito (Bierman et al., 2017). La siguiente tabla resume las diferencias:")
+P("RESTCONF no pretende reemplazar a NETCONF, sino ofrecer una "
+  "alternativa más sencilla para acceder a los datos de configuración "
+  "y estado mediante HTTP. En su especificación original, RFC 8040, "
+  "presenta una vista unificada de los datos y no proporciona operaciones "
+  "de bloqueo explícito ni confirmación manual de los cambios. "
+  "Si el equipo dispone de un almacén `candidate`, las modificaciones "
+  "exitosas se confirman automáticamente en `running` "
+  "(Bierman et al., 2017). Posteriormente, el RFC 8527 amplió RESTCONF "
+  "para permitir el acceso a almacenes de datos específicos en equipos "
+  "compatibles con la arquitectura NMDA (Bjørklund et al., 2019). "
+  "La siguiente tabla resume las diferencias:")
 tabla("Comparación entre NETCONF y RESTCONF.", ["Aspecto", "NETCONF", "RESTCONF"], [
     ["Estándar", "RFC 6241 (2011)", "RFC 8040 (2017)"],
     ["Transporte", "SSH, puerto TCP 830", "HTTPS (HTTP sobre TLS), puerto TCP 443"],
     ["Codificación", "XML", "XML o JSON"],
     ["Sesión", "Con estado: se abre una sesión y se intercambian capacidades con `<hello>`", "Sin estado: cada petición HTTP es independiente"],
     ["Operaciones", "RPC en XML: `get`, `get-config`, `edit-config`, `lock`, `commit`, etc.", "Métodos HTTP sobre un URL: GET, POST, PUT, PATCH y DELETE"],
-    ["Almacenes y bloqueo", "Varios almacenes (`running`, `candidate`, `startup`), bloqueo y confirmación explícita", "Vista unificada; sin bloqueo explícito; las ediciones se confirman de inmediato"],
+    ["Almacenes y bloqueo",
+     "Acceso a almacenes según las capacidades del equipo; bloqueo y confirmación explícita cuando corresponde",
+     "Vista unificada en RFC 8040; acceso a almacenes específicos mediante RFC 8527; sin bloqueo explícito"],
     ["Clientes típicos", "Bibliotecas como ncclient", "Cualquier cliente HTTP: Postman, curl o requests"],
 ], [3.8, 5.9, 5.9])
-P("Fuentes de la tabla: Enns et al. (2011), Wasserman (2011) y Bierman et al. (2017).", 11)
+P("Fuentes de la tabla: Enns et al. (2011), Wasserman (2011), Bierman et al. (2017) y Bjørklund et al. (2019).", 11)
 P("**Mayor ventaja:** su sencillez. Como usa HTTP con un estilo REST, cualquier herramienta o lenguaje que sepa hacer peticiones web puede gestionar el equipo, sin abrir sesiones ni manejar XML si se prefiere JSON (Bierman et al., 2017). En este proyecto eso permitió usar el mismo router desde Postman y desde Python con muy poco código; a cambio, cuando se necesitan transacciones con bloqueo o varios almacenes, NETCONF sigue siendo la opción adecuada.")
 H("2.4.2 Relación entre los modelos YANG y las llamadas API RESTCONF", 3)
 P("En RESTCONF, el modelo YANG define la API. El cliente descubre la raíz con `/.well-known/host-meta`, que normalmente apunta a `/restconf`; debajo están los recursos `data` (configuración y estado), `operations` (las RPC definidas en los modelos) y `yang-library-version`. El URL de un dato se forma con la ruta de su árbol YANG: el primer nodo lleva el nombre del módulo como prefijo (`ietf-interfaces:interfaces`) y la entrada de una lista se indica con `=` y el valor de su llave (`interface=Loopback501`) (Bierman et al., 2017). El cuerpo de la petición es YANG data codificado en JSON o XML (Lhotka, 2016).")
@@ -445,23 +457,70 @@ B([
     "`/ietf-interfaces:interfaces`: módulo YANG y su contenedor.",
     "`/interface=Loopback501`: lista `interface` y valor de su llave `name`.",
 ])
-P("Cada método HTTP equivale a una operación de NETCONF sobre el mismo modelo (Bierman et al., 2017):")
-tabla("Métodos de RESTCONF y su equivalente en NETCONF.", ["Método", "Operación NETCONF", "Uso en este proyecto", "Respuesta obtenida"], [
-    ["GET", "`get-config` o `get`", "Listar interfaces y leer su estado", "200"],
-    ["POST", "`edit-config` (create) o invocar una RPC", "Enviar la alerta a la API de Webex (fuera de RESTCONF)", "200"],
-    ["PUT", "`edit-config` (create o replace)", "Crear las interfaces Loopback", "201"],
-    ["PATCH", "`edit-config` (merge)", "Cambiar la descripción, apagar y encender", "204"],
-    ["DELETE", "`edit-config` (delete)", "Borrar las interfaces", "204"],
+
+P("Los métodos HTTP de RESTCONF permiten realizar operaciones "
+  "equivalentes a las principales operaciones de NETCONF sobre "
+  "los datos definidos por YANG (Bierman et al., 2017):")
+
+tabla("Métodos de RESTCONF y su equivalente en NETCONF.",
+      ["Método", "Operación NETCONF", "Uso en este proyecto", "Respuesta HTTP"], [
+    ["GET", "`get-config` o `get`",
+     "Listar interfaces y leer su estado", "200"],
+
+    ["POST", "`edit-config` (create) o invocar una RPC",
+     "No utilizado directamente sobre RESTCONF", "201 al crear"],
+
+    ["PUT", "`edit-config` (create o replace)",
+     "Crear las interfaces Loopback", "201 / 204"],
+
+    ["PATCH", "`edit-config` (merge, para plain patch)",
+     "Cambiar la descripción, apagar y encender", "204"],
+
+    ["DELETE", "`edit-config` (delete)",
+     "Borrar las interfaces", "204"],
 ], [2.0, 4.6, 6.2, 2.8])
+
+P("Fuente: Bierman et al. (2017).", 11)
+
+P("En este proyecto, el método POST también se utiliza para "
+  "enviar mensajes de alerta a Webex mediante su API REST, "
+  "obteniendo una respuesta HTTP 200. Esta operación es independiente "
+  "de RESTCONF y permite integrar la administración de redes con "
+  "una herramienta de comunicación y colaboración (Webex, s. f.).")
+
 H("2.4.3 ¿Qué es Postman? Requerimientos y uso para llamadas API", 3)
 P("Postman es una plataforma para diseñar, probar y documentar APIs. Permite armar peticiones HTTP indicando el método, el URL, los encabezados, la autenticación y el cuerpo, ver la respuesta con su código y su tiempo, y guardar las peticiones en colecciones. Las colecciones usan variables de entorno, pueden incluir pruebas escritas en JavaScript que validan cada respuesta y se pueden ejecutar completas con el Collection Runner o desde la línea de comandos con Newman (Postman, s. f.).")
-P("**Requerimientos** para usarlo con RESTCONF:")
+
+P("**Requerimientos** para usar Postman con RESTCONF:")
+
 B([
-    "Postman instalado (aplicación de escritorio para Windows, macOS o Linux) o su versión web, con una cuenta para guardar y compartir las colecciones (Postman, s. f.).",
-    "Conectividad IP con el equipo; en este proyecto, la VPN hacia el sandbox de Cisco.",
-    "RESTCONF habilitado en el equipo. En Cisco IOS XE se activa con los comandos `restconf` e `ip http secure-server`, y la conexión se autentica con AAA usando un usuario de nivel de privilegio 15 (Cisco Systems, s. f.-b).",
-    "Desactivar la verificación del certificado SSL en Postman cuando el equipo usa un certificado autofirmado, como el del sandbox.",
+    "Postman instalado como aplicación de escritorio para Windows, "
+    "macOS o Linux. También puede utilizarse la versión web con "
+    "Postman Desktop Agent para acceder a recursos de redes privadas "
+    "(Postman, s. f.).",
+
+    "Conectividad IP entre el cliente y el dispositivo de red. "
+    "En este proyecto se requiere establecer una conexión VPN "
+    "hacia el sandbox de Cisco.",
+
+    "Servicio RESTCONF habilitado en el equipo y acceso al puerto "
+    "TCP 443. En Cisco IOS XE se habilita mediante los comandos "
+    "`restconf` e `ip http secure-server` "
+    "(Cisco Systems, s. f.-b).",
+
+    "Credenciales válidas de un usuario autorizado para consultar "
+    "y modificar la configuración del dispositivo, según las "
+    "políticas de autenticación y autorización AAA "
+    "(Cisco Systems, s. f.-b).",
+
+    "Un certificado TLS confiable para establecer una comunicación "
+    "HTTPS segura. En el ambiente controlado del laboratorio se "
+    "deshabilitó temporalmente la verificación del certificado debido "
+    "al uso de un certificado autofirmado. En producción se recomienda "
+    "utilizar certificados válidos y mantener habilitada su "
+    "verificación (Postman, s. f.).",
 ])
+
 P("**Uso:** se crea una petición, se elige el método, se escribe el URL de RESTCONF, se configura la autenticación básica (usuario y contraseña) y se agregan los encabezados `Accept` y `Content-Type` con el valor `application/yang-data+json`; en PUT y PATCH se agrega el cuerpo JSON. Al enviarla, Postman muestra el código HTTP, el tiempo y el cuerpo de la respuesta.")
 H("2.4.4 Llamadas RESTCONF con Postman y con Python", 3)
 P("**Con Postman:** la colección del proyecto (sección 3.5) contiene las diez peticiones del caso de uso. Esta es la configuración de la petición que crea una interfaz:")
@@ -474,23 +533,62 @@ tabla("Configuración en Postman de la petición que crea la Loopback501.", ["Ca
     ["Prueba", "El código de respuesta es 2xx y el tiempo es menor a 5 s"],
     ["Respuesta esperada", "201 Created (o 204 si la interfaz ya existía)"],
 ], [4.0, 11.6], 9)
-P("**Con Python:** se usa la biblioteca requests, que permite enviar peticiones HTTP con autenticación, encabezados y cuerpo JSON en una sola llamada (Reitz, s. f.). El parámetro `verify=False` se usa porque el sandbox tiene un certificado autofirmado:")
+
+P("**Con Python:** se utiliza la biblioteca requests para enviar "
+  "peticiones HTTP con autenticación, encabezados y datos JSON. "
+  "El siguiente ejemplo ilustrativo muestra cómo crear una interfaz "
+  "Loopback y consultar posteriormente su configuración. "
+  "Las credenciales se obtienen de variables de entorno y se "
+  "establece un tiempo máximo de espera para cada solicitud. "
+  "El parámetro `verify=False` se utiliza únicamente en el "
+  "ambiente controlado del laboratorio, ya que deshabilita "
+  "la validación del certificado TLS (Reitz, s. f.):")
+
 codigo("""
+import os
 import requests
+
+USUARIO = os.environ["RESTCONF_USER"]
+CLAVE = os.environ["RESTCONF_PASSWORD"]
 
 BASE = "https://10.10.20.48/restconf/data"
 URL = BASE + "/ietf-interfaces:interfaces/interface=Loopback501"
+
 H = {"Accept": "application/yang-data+json",
      "Content-Type": "application/yang-data+json"}
-cuerpo = {"ietf-interfaces:interface": {
-    "name": "Loopback501", "type": "iana-if-type:softwareLoopback",
-    "description": "CE5301 - creada por RESTCONF", "enabled": True}}
 
-r = requests.put(URL, json=cuerpo, headers=H, auth=(USUARIO, CLAVE), verify=False)
-print(r.status_code)  # 201: interfaz creada
-r = requests.get(URL, headers=H, auth=(USUARIO, CLAVE), verify=False)
-print(r.json()["ietf-interfaces:interface"]["description"])
+cuerpo = {"ietf-interfaces:interface": [{
+    "name": "Loopback501",
+    "type": "iana-if-type:softwareLoopback",
+    "description": "CE5301 - creada por RESTCONF",
+    "enabled": True
+}]}
+
+# Crear o reemplazar la interfaz
+r = requests.put(URL, json=cuerpo, headers=H,
+                 auth=(USUARIO, CLAVE),
+                 verify=False, timeout=10)
+r.raise_for_status()
+print(r.status_code)
+
+# Consultar la interfaz
+r = requests.get(URL, headers=H,
+                 auth=(USUARIO, CLAVE),
+                 verify=False, timeout=10)
+r.raise_for_status()
+
+datos = r.json()["ietf-interfaces:interface"]
+interfaz = datos[0] if isinstance(datos, list) else datos
+print(interfaz["description"])
 """)
+
+P("La respuesta HTTP 201 indica que se creó un recurso nuevo, "
+  "mientras que HTTP 204 indica que se reemplazó uno existente. "
+  "La consulta mediante GET permite verificar la configuración "
+  "obtenida. En aplicaciones de producción deben utilizarse "
+  "certificados confiables y mantenerse habilitada su verificación "
+  "(Bierman et al., 2017; Reitz, s. f.).")
+
 P("Los scripts del caso de uso (sección 3.5 y Anexo 1) amplían este ejemplo para recorrer una lista de interfaces, medir el tiempo de cada petición y guardar los resultados.")
 H("2.4.5 Herramientas de automatización de la configuración de redes", 3)
 P("Las herramientas de gestión de la configuración aplican el estado deseado a muchos equipos a la vez. Se diferencian por quién inicia la comunicación: en el método **push**, el servidor central se conecta a los nodos y les envía la configuración; en el método **pull**, cada nodo tiene un agente que contacta periódicamente al servidor y descarga su configuración. Ansible, por ejemplo, es push por defecto, y su comando `ansible-pull` invierte esa arquitectura para que cada nodo descargue los playbooks desde un repositorio (Red Hat, s. f.). La siguiente tabla compara tres herramientas:")
@@ -504,6 +602,20 @@ P("**Ansible** no necesita instalar nada en los nodos: el nodo de control ejecut
 P("**Puppet** sigue una arquitectura cliente-servidor: un servidor primario guarda la configuración de los nodos, escrita en el lenguaje declarativo de Puppet; cada agente pide su catálogo individual y lo aplica de forma periódica. La comunicación es por HTTPS con certificados SSL, y PuppetDB puede guardar los datos que generan los agentes (Puppet, s. f.).")
 P("**Salt** combina ambos métodos: el master publica trabajos en un bus de mensajes y los minions suscritos los ejecutan (push), pero un minion también puede programar la aplicación de su estado, por ejemplo cada 60 minutos, o trabajar sin master. Salt SSH ejecuta comandos sin instalar el minion, y los proxy minions sirven para equipos de red que no pueden correr un minion propio (Salt Project, s. f.).")
 P("Existen otras herramientas con un diseño parecido al de Puppet, como Chef, en la que un servidor central (Chef Infra Server) guarda las políticas y los cookbooks y el cliente de cada nodo aplica las recetas, escritas en Ruby (Progress Chef, s. f.).")
+
+P("**Aplicación al caso de uso.** De las herramientas investigadas, "
+  "Ansible representa una alternativa adecuada para ampliar la "
+  "solución desarrollada en este proyecto, debido a su arquitectura "
+  "sin agentes propios en los dispositivos de red y a la "
+  "disponibilidad de módulos compatibles con RESTCONF y NETCONF. "
+  "Esto permitiría centralizar el inventario de equipos, reutilizar "
+  "configuraciones y aplicar cambios sobre múltiples dispositivos "
+  "mediante playbooks. Por su parte, Puppet y Salt ofrecen "
+  "mecanismos adicionales de gestión del estado deseado y "
+  "automatización mediante agentes intermediarios. Estas "
+  "herramientas se investigaron como alternativas y no fueron "
+  "evaluadas experimentalmente en el caso de uso "
+  "(Red Hat, s. f.; Puppet, s. f.; Salt Project, s. f.).")
 
 salto()
 # ---------------------------------------------------------------- CASO DE USO
@@ -605,6 +717,20 @@ B([
     "El monitoreo mediante `interfaces-state` detectó las interfaces caídas, y la integración con la API de Webex entregó la alerta en la sala de Webex.",
     "NETCONF y RESTCONF exponen los mismos modelos YANG; RESTCONF resultó más sencillo de usar con Postman y Python, mientras que NETCONF ofrece sesiones con estado y transacciones.",
     "**Christopher.** Como responsable de la parte técnica, la principal dificultad no fue el código sino la infraestructura: los sandboxes Always On no estaban disponibles y hubo que pasar a un Catalyst 8000v on-demand por VPN, con una reserva que vence y debe renovarse. Una vez resuelto, el mismo script sirvió para crear, modificar, consultar y borrar interfaces, y para enviar la alerta a Webex con 100 % de éxito en las operaciones medidas. La colección de Postman también se ejecutó completa, con 10 peticiones y 20 aserciones sin fallos.",
+    "**Javier.** El desarrollo de este desafío me permitió "
+    "comprender cómo la programabilidad basada en modelos facilita "
+    "la administración de redes, especialmente mediante RESTCONF "
+    "y YANG. La utilización de herramientas como Postman y Python "
+    "demuestra que es posible automatizar tareas que tradicionalmente "
+    "se realizan de forma manual, reduciendo la intervención del "
+    "administrador y facilitando la configuración de múltiples "
+    "interfaces. Asimismo, la integración con Webex permitió "
+    "evidenciar la utilidad de combinar diferentes APIs para detectar "
+    "y comunicar problemas en la red. Considero que una mejora "
+    "importante sería implementar un monitoreo continuo y distinguir "
+    "entre las interfaces deshabilitadas intencionalmente y aquellas "
+    "que presentan una falla real, evitando así generar alertas "
+    "innecesarias.",
 ])
 H("5.2 Recomendaciones y mejoras", 2)
 B([
@@ -643,6 +769,7 @@ refs = [
  "Shafer, P. (2011). An Architecture for Network Management Using NETCONF and YANG (RFC 6244). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6244",
  "Wasserman, M. (2011). Using the NETCONF Protocol over Secure Shell (SSH) (RFC 6242). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6242",
  "Webex. (s. f.). Webex for Developers: Messages API. Cisco. https://developer.webex.com/messaging/docs/api/v1/messages",
+ "Bjørklund, M., Schönwälder, J., Shafer, P., Watsen, K., & Wilton, R. (2019). RESTCONF Extensions to Support the Network Management Datastore Architecture (RFC 8527). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8527",
 ]
 for r_ in refs:
     p = doc.add_paragraph(); p.alignment = J
@@ -820,15 +947,151 @@ P("Próxima reunión (opcional): 25 de noviembre, cierre y lecciones aprendidas.
 H("A2.6 Bitácoras individuales", 2)
 P("**Christopher.** Entradas reconstruidas a partir del historial del repositorio, las capturas y las minutas; las duraciones sin dato deben completarse.")
 tabla("Bitácora de Christopher.", ["Fecha", "Actividad", "Duración"], [
-    ["12 nov", "Creación del repositorio y primeras tareas", "[[completar]]"],
+    ["12 nov", "Creación del repositorio y primeras tareas", "45 min aprox."],
     ["18 nov", "Reunión 1 por Discord (Minuta 1): caso de uso aprobado y reparto de tareas", "Más de 32 min"],
     ["20 nov", "Reunión 2 por Discord (Minuta 2): avance de investigación y del caso de uso", "Más de 28 min"],
-    ["20 nov", "Scripts RESTCONF, colección Postman, ejemplo NETCONF; bot y sala de Webex; captura del mensaje de prueba", "[[completar]]"],
-    ["22 nov", "Diagnóstico de la falla de los sandboxes Always On; reserva del Cat8000v on-demand; pruebas del caso de uso (RESTCONF, NETCONF, alerta a Webex); árboles YANG con pyang; capturas, guion de la demo y grabación de respaldo; subida al repositorio", "[[completar]]"],
+    ["20 nov", "Scripts RESTCONF, colección Postman, ejemplo NETCONF; bot y sala de Webex; captura del mensaje de prueba", "4 h 30 min aprox."],
+    ["22 nov", "Diagnóstico de la falla de los sandboxes Always On; reserva del Cat8000v on-demand; pruebas del caso de uso (RESTCONF, NETCONF, alerta a Webex); árboles YANG con pyang; capturas, guion de la demo y grabación de respaldo; subida al repositorio", "6 h aprox."],
     ["23 nov", "Reunión 3 por Discord (Minuta 3): revisión de informe y video", "Más de 24 min"],
 ], [2.2, 10.4, 3.0])
+
+
+P("**Javier.** Registro de las actividades realizadas en la "
+  "investigación de RESTCONF, la documentación del caso de uso, "
+  "la organización del trabajo en equipo y la preparación del video.")
+
+tabla("Bitácora de Javier.", ["Fecha", "Actividad", "Duración"], [
+    ["18 nov", "Participación en la reunión 1 por Discord (Minuta 1): "
+     "definición del caso de uso, distribución de responsabilidades "
+     "y planificación del proyecto.", "Más de 32 min"],
+
+    ["18-20 nov", "Investigación sobre Postman, solicitudes RESTCONF "
+     "con Python y herramientas de automatización Ansible, Puppet "
+     "y Salt.", "2 h 30 min aprox."],
+
+    ["20 nov", "Participación en la reunión 2 por Discord (Minuta 2): "
+     "revisión del avance de la investigación y del caso de uso.",
+     "Más de 28 min"],
+
+    ["20-23 nov", "Documentación del problema seleccionado, "
+     "la solución propuesta y las herramientas utilizadas "
+     "en el caso de uso.", "1 h 30 min aprox."],
+
+    ["20-23 nov", "Elaboración del diagrama de arquitectura del "
+     "sistema, considerando la conexión VPN, el router Cisco "
+     "y la integración con Webex.", "1 h aprox."],
+
+    ["23 nov", "Participación en la reunión 3 por Discord (Minuta 3): "
+     "revisión de resultados, informe, distribución del video "
+     "y actividades pendientes.", "Más de 24 min"],
+
+    ["21-24 nov", "Preparación del guion, distribución de tiempos "
+     "y diapositivas de apoyo para el video.", "2 h 30 min aprox."],
+
+    ["24-25 nov", "Revisión y organización del Anexo 2: metas, "
+     "roles, reglas, cronograma y minutas del equipo.", "2 h aprox."],
+
+    ["25 nov", "Redacción de la reflexión grupal sobre eficiencia, "
+     "equidad, inclusión y colaboración (TE5-TE7) y redacción "
+     "de la conclusión personal.", "1 h aprox."],
+], [2.2, 10.4, 3.0])
+
+
+P("**Randall.** Registro de las actividades realizadas como líder "
+  "de investigación y editor del informe, incluyendo la investigación "
+  "sobre programabilidad basada en modelos y YANG, la integración "
+  "de los contenidos, la revisión bibliográfica y el formato del documento.")
+
+tabla("Bitácora de Randall.", ["Fecha", "Actividad", "Duración"], [
+    ["12-18 nov", "Preparación de la plantilla del informe según "
+     "los requerimientos de formato establecidos por el profesor.",
+     "1 h aprox."],
+
+    ["18 nov", "Participación en la reunión 1 por Discord (Minuta 1): "
+     "definición del caso de uso, distribución de responsabilidades "
+     "y planificación del proyecto.", "Más de 32 min"],
+
+    ["14-20 nov", "Investigación sobre programabilidad basada en modelos, "
+     "DevOps, SNMP, RFC 3535, bloques básicos de construcción "
+     "y modelos de datos.", "2 h aprox."],
+
+    ["14-20 nov", "Investigación sobre el lenguaje YANG, estructura "
+     "de los modelos de datos, YANG data y utilización de pyang "
+     "para explorar modelos.", "2 h aprox."],
+
+    ["20 nov", "Participación en la reunión 2 por Discord (Minuta 2): "
+     "presentación de los bloques de investigación A y B y revisión "
+     "del avance del caso de uso.", "Más de 28 min"],
+
+    ["20 nov", "Redacción y organización de la Minuta 2, incluyendo "
+     "los acuerdos, actividades pendientes y responsables.",
+     "30 min aprox."],
+
+    ["20-24 nov", "Integración de los cuatro bloques de investigación "
+     "en el informe y unificación de la redacción y el estilo "
+     "del documento.", "1 h 30 min aprox."],
+
+    ["23 nov", "Participación en la reunión 3 por Discord (Minuta 3): "
+     "revisión de resultados, estado del informe, distribución "
+     "del video y actividades pendientes.", "Más de 24 min"],
+
+    ["24 nov", "Organización y revisión de las referencias bibliográficas "
+     "en formato APA, verificación de los enlaces y correspondencia "
+     "entre las citas y las referencias del informe.",
+     "1 h 30 min aprox."],
+
+], [2.2, 10.4, 3.0])
+
 H("A2.7 Evaluación de la eficiencia", 2)
-P("[[PENDIENTE: reflexión grupal sobre eficiencia, equidad e inclusión y colaboración (TE5 a TE7), escrita por el equipo una vez terminado el desafío. Cada integrante debe además llenar el formulario individual y de coevaluación.]]")
+
+P("**Eficiencia y efectividad del trabajo (TE5).** "
+  "La organización del proyecto permitió distribuir las actividades "
+  "entre los tres integrantes y avanzar de forma paralela en la "
+  "investigación, la implementación técnica y la documentación. "
+  "En la parte práctica se consiguió configurar y monitorear interfaces "
+  "mediante RESTCONF, así como enviar alertas automáticas a Webex. "
+  "Las pruebas registraron un 100 % de operaciones exitosas en los "
+  "escenarios evaluados. Sin embargo, se identificaron dificultades "
+  "con la disponibilidad de los sandboxes de Cisco, lo que obligó "
+  "a cambiar a un entorno on-demand y ajustar el cronograma.")
+
+P("**Equidad e inclusión en la distribución del trabajo (TE6).** "
+  "Las responsabilidades se distribuyeron según las funciones "
+  "acordadas por el grupo. Christopher se encargó principalmente "
+  "de la implementación técnica y NETCONF; Randall desarrolló "
+  "la investigación de programabilidad y YANG, además de integrar "
+  "el informe; y Javier asumió la investigación de RESTCONF, "
+  "la documentación del trabajo en equipo y la preparación del video. "
+  "La distribución permitió que cada integrante contribuyera "
+  "con investigación, documentación y exposición. Como mejora, "
+  "convendría revisar periódicamente la carga de trabajo para "
+  "redistribuir tareas cuando alguna actividad requiera más "
+  "tiempo del previsto.")
+
+P("**Colaboración y cooperación (TE7).** "
+  "Las reuniones de seguimiento permitieron revisar el progreso, "
+  "discutir dificultades y asignar responsabilidades con fechas "
+  "de cumplimiento. El equipo compartió los avances mediante "
+  "el repositorio y las minutas de trabajo. Un ejemplo de "
+  "colaboración fue la adaptación del caso de uso cuando "
+  "los sandboxes Always On no estuvieron disponibles, "
+  "lo que permitió continuar las pruebas con un entorno "
+  "alternativo. Se considera importante mantener estas "
+  "prácticas y reforzar la validación cruzada de los entregables.")
+
+P("**Oportunidades de mejora.** "
+  "Para futuros proyectos se recomienda registrar las actividades "
+  "y su duración desde el momento en que se realizan, conservar "
+  "las evidencias de cada reunión, anticipar alternativas ante "
+  "fallas de infraestructura externa y reservar tiempo suficiente "
+  "para integrar y revisar los entregables finales.")
+
+P("**Evaluación individual y coevaluación.** "
+  "De acuerdo con las indicaciones del desafío, cada integrante "
+  "debe completar de forma individual el formulario de "
+  "autoevaluación y coevaluación del equipo. Esta reflexión "
+  "grupal complementa dicho proceso, pero no sustituye "
+  "las evaluaciones individuales obligatorias.")
 
 doc.save(os.path.join(BASE, "Informe.docx"))
 print("Informe.docx generado")

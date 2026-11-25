@@ -4,6 +4,9 @@ Detalle de cada requisito y rúbricas en [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 
 **Entrega:** jueves 26 de noviembre de 2026.
 **Integrantes:** Christopher · Randall · Javier
+**Última actualización:** miércoles 25 de noviembre de 2026.
+
+> **Estado al 25 nov:** se prepararon las correcciones del bloque D, la conclusión de Javier, la reflexión TE5–TE7, las tres bitácoras con duraciones estimadas y la nueva presentación con su guion HTML. Javier logró generar `Informe.docx` localmente. Falta verificar la incorporación de todos los cambios en la última versión del informe, validar las estimaciones con cada integrante, completar las evidencias y finalizar el video. Una tarea de redacción marcada como hecha no implica que ya esté integrada en `Development` o `main`.
 
 **Branches:** `main` ← `Development` ← un branch por integrante (`ChrisDevelopment`, `yitanDevelopment`, …). Cada quien trabaja en el suyo y lo integra a `Development`; Christopher hace el merge a `main`. **24 nov:** `Development` quedó al día con todo lo de `ChrisDevelopment` (commit `e1bcfb1`); se sigue desde ahí.
 
@@ -19,7 +22,7 @@ Detalle de cada requisito y rúbricas en [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 3. **Alertas a Webex:** enviar un mensaje a una sala de Webex cuando una interfaz esté caída.
 
 
-**Configuración y monitoreo de interfaces de un router Cisco IOS XE mediante RESTCONF**, usando el sandbox gratuito "IOS XE on Cat8kv Always-On" de developer.cisco.com.
+**Configuración y monitoreo de interfaces de un router Cisco IOS XE mediante RESTCONF**, usando el sandbox de Cisco DevNet. Inicialmente se eligió "IOS XE on Cat8kv Always-On"; debido a su indisponibilidad, las pruebas se realizaron con el **Catalyst 8000v on-demand** (privado, IOS XE 17.12.02), mediante VPN.
 
 - **Postman:** colección con GET/PUT/PATCH/DELETE sobre el modelo YANG `ietf-interfaces` (crear una loopback, cambiar descripción, consultar estado, borrarla).
 - **Python (`requests`):** script que aplica la misma configuración a una lista de interfaces/dispositivos y otro que consulta el estado operativo y avisa si una interfaz está caída.
@@ -46,18 +49,17 @@ Carga equilibrada: cada persona investiga, escribe una parte del informe, lleva 
 **Todos**
 - [x] **Reunión 1 (kickoff):** confirmar caso de uso, roles, reglas del equipo y cronograma → **Minuta 1** — *Minuta 1 redactada en el Anexo 2; falta la captura real de esa reunión*
 - [ ] Crear carpeta compartida (Drive/OneDrive) y repositorio para el código — *repositorio listo en GitHub (`ChrisRC7/Proyecto-de-Redes-de-Computadores`); falta confirmar la carpeta compartida*
-- [ ] Cada quien abre su **bitácora** personal desde hoy (fecha, actividad, duración)
+- [x] Preparar el registro de **bitácoras** personales (fecha, actividad, duración) — *25 nov: las tres bitácoras tienen contenido preparado; las duraciones reconstruidas son aproximadas y requieren validación individual. No se confirma que se hayan llevado desde el arranque.*
 
 **Christopher**
 - [x] Crear cuenta en developer.cisco.com y reservar/probar el sandbox — *los Always On (Cat8000v y Cat9000v) están caídos del lado de Cisco (reportado en Cisco Community 19–22 nov). Se usa el **Catalyst 8000v on-demand** (privado, IOS XE 17.12.02), reservado 22 nov 13:22 → **24 nov 13:22**; acceso por VPN con OpenConnect GUI 1.6.2 (`D:\Programacion\Herramientas\OpenConnect-GUI`, perfil con Interface name `devnet`); router `10.10.20.48`. Reservar de nuevo antes de grabar el video si la reserva ya venció*
-- [x] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; la colección se corre con Newman (`D:\Programacion\Herramientas
-ewman`)*
+- [x] Instalar Postman y Python (`requests`, `ncclient`, `pyang`) — *Python y librerías listos; la colección se corre con Newman (`D:\Programacion\Herramientas\newman`)*
 
 **Randall**
 - [x] Crear la plantilla del informe con el formato exigido (Arial 12, justificado, títulos Arial 12 negrita, pies de tabla/figura Arial 11)
 
 **Javier**
-- [ ] Crear plantillas de minuta y de bitácora
+- [x] Definir la estructura de minuta y bitácora — *formatos utilizados en A2.5 y A2.6 de `construir_informe.py`; no se confirma la creación de plantillas independientes.*
 - [x] Redactar borrador de metas, roles, reglas y cronograma para el Anexo 2 — *ya están en el informe (A2.1 a A2.4)*
 
 ---
@@ -87,13 +89,19 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Ejemplo de llamada NETCONF a un equipo (comando + caso de uso), probado en el sandbox — *`netconf_ejemplo.py --capacidades` OK 22 nov: sesión en 2,8 s, `<get-config>` en 389 ms; salida en `caso-de-uso/resultados/netconf_get_config.txt`*
 - [x] Qué es una RPC y formato de los mensajes
 
-**Javier — Bloque D: RESTCONF y herramientas** — *borrador en el informe, sección 2.4 (24 nov), con fuentes verificadas; Javier lo revisa y ajusta*
+**Javier — Bloque D: RESTCONF y herramientas** — *borrador en el informe (24 nov); revisión técnica y correcciones preparadas el 25 nov para la sección 2.4*
 - [x] ¿Qué es RESTCONF, diferencia con NETCONF y mayor ventaja?
 - [x] Relación entre modelos YANG y llamadas API RESTCONF
 - [x] Qué es Postman, requerimientos y uso para llamadas API
 - [x] Llamadas RESTCONF con Postman y con Python (apoyarse en lo que arme Christopher)
 - [x] Tres herramientas de automatización: Ansible, Puppet y Salt (y mención de Chef): push o pull, diseño del sistema central, sistemas operativos
-- [ ] Javier: revisar el borrador del bloque D y avisar si cambia algo
+- [x] Javier: revisar el borrador del bloque D — *25 nov: revisión de las secciones 2.4.1 a 2.4.5 y preparación de sustituciones en `construir_informe.py`.*
+  - [x] Precisar la comparación NETCONF/RESTCONF (RFC 8040 y extensión NMDA del RFC 8527).
+  - [x] Separar el POST de RESTCONF del POST de la API de Webex (Tabla #5).
+  - [x] Precisar los requisitos de Postman, Desktop Agent, VPN, AAA y validación TLS.
+  - [x] Preparar un ejemplo didáctico de Python con variables de entorno, timeout y manejo de errores HTTP; conservar los scripts reales ya probados.
+  - [x] Actualizar la comparación Ansible, Puppet y Salt (WSL, agente proxy y sistemas operativos); preparar análisis de aplicación al caso de uso.
+- [ ] Confirmar que todas las correcciones quedaron incorporadas en el generador, avisar a Randall y armonizar el ejemplo JSON de 2.2.2 con el de 2.4.4. El ejemplo didáctico nuevo no se ha probado contra el sandbox.
 
 **Todos**
 - [x] **Reunión 2 (avance de investigación + demo preliminar)** → **Minuta 2** — *Minuta 2 redactada; falta la captura real*
@@ -150,19 +158,24 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Numerar tablas y figuras con el formato "**Tabla #1.** Descripción"
 - [x] Revisar **página por página** que todo esté justificado — *24 nov: 0 párrafos sin justificar en el Word; repetir al final con el PDF definitivo*
 - [x] Generar índice automático
+- [ ] Incorporar y verificar la referencia adicional al RFC 8527 y las fuentes específicas de las correcciones de RESTCONF (Postman, Puppet, Ansible, Salt y Requests); actualizar las citas APA correspondientes sin duplicar referencias.
 
 **Javier**
 - [x] Anexo 2: metas, roles, reglas, cronograma con responsables y fechas
-- [ ] Anexo 2: las 3+ minutas y las 3 bitácoras individuales
-- [ ] Anexo 2: reflexión grupal sobre eficiencia, equidad y colaboración (TE5–TE7)
+- [x] Anexo 2: redactar las tres minutas (A2.5) — *las tres están redactadas; la Minuta 3 tiene captura real.*
+- [x] Anexo 2: preparar las tres bitácoras individuales (A2.6) — *25 nov: Christopher, Randall y Javier, con actividades documentadas y duraciones aproximadas.*
+- [x] Anexo 2: redactar reflexión grupal sobre eficiencia, equidad y colaboración (TE5–TE7) — *25 nov: código preparado para A2.7, incluyendo oportunidades de mejora y recordatorio de la evaluación individual obligatoria.*
+- [ ] Confirmar la incorporación de las tres bitácoras y la reflexión en `construir_informe.py` y el Word definitivo; validar las duraciones y la reflexión con el equipo.
+- [ ] Anexo 2: completar las evidencias de las minutas 1 y 2 y actualizar cualquier afirmación desfasada de la Minuta 3.
 
 **Todos**
 - [x] Párrafo de conclusión (5.1): Christopher
 - [ ] Párrafo de conclusión (5.1): Randall
-- [ ] Párrafo de conclusión (5.1): Javier
-- [ ] Bitácora en A2.6: Christopher — *está en el informe; faltan duraciones marcadas «completar»*
-- [ ] Bitácora en A2.6: Randall
-- [ ] Bitácora en A2.6: Javier
+- [x] Párrafo de conclusión (5.1): Javier — *25 nov: redactado sobre RESTCONF, YANG, automatización, Webex y mejora del monitoreo; falta verificar en el informe definitivo.*
+- [x] Bitácora en A2.6: Christopher — *25 nov: se prepararon sustituciones para las tres duraciones pendientes, conservando las actividades originales; estimaciones por validar.*
+- [x] Bitácora en A2.6: Randall — *25 nov: tabla completa preparada para las actividades documentadas; no se incluyen como realizadas las pruebas independientes, grabación ni exportación aún no confirmadas.*
+- [x] Bitácora en A2.6: Javier — *25 nov: tabla preparada y duraciones aproximadas completadas; quedan por registrar las actividades de video cuando se realicen.*
+- [ ] Cada integrante valida las fechas, actividades y tiempos estimados de su bitácora y registra las actividades adicionales efectivamente realizadas.
 - [ ] Capturas reales de las reuniones 1 (18 nov) y 2 (20 nov) para las minutas — *las de `Capturas/` se retiraron del informe*
 
 ---
@@ -172,17 +185,25 @@ Cada dato con su cita; nada de Wikipedia.
 **Javier**
 - [x] Guion con tiempos (meta: 9 min, para tener margen)
 - [x] Diapositivas breves de apoyo
+- [x] Rediseñar la presentación — *25 nov: `Redes.pptx` (también generado como `Desafio_Redes_Presentacion.pptx`), seis diapositivas editables en formato 16:9; conserva orden, temas y reparto. Arquitectura rediseñada y resultados cuantitativos destacados.*
+- [x] Preparar el guion completo de exposición — *25 nov: `Guion_Desafio_Redes.html`, con texto por integrante y diapositiva, tiempos, transiciones e indicaciones para la demo.*
+- [ ] Compartir los archivos actualizados con los compañeros e incorporarlos al repositorio en la ubicación acordada.
+- [ ] Christopher: contrastar los pasos y comandos del guion HTML con `caso-de-uso/demo/GUION_DEMO.md` y su entorno real antes de grabar.
 - [ ] Editar y unir las partes; verificar duración **≤ 10:00**
 - [ ] Subir (YouTube no listado o Drive) y comprobar que el enlace abre sin iniciar sesión
 
-**Reparto sugerido (cada quien con cámara encendida)**
+**Reparto del guion actualizado (cada quien con cámara encendida)**
 
-| Tiempo | Quién | Contenido |
-|---|---|---|
-| 0:00–2:00 | Randall | Introducción: qué permite hacer el caso de uso y su utilidad real |
-| 2:00–4:00 | Javier | Requerimientos mínimos de red, aplicaciones usadas y arquitectura |
-| 4:00–8:30 | Christopher | Configuración, scripts y demostración en vivo (Postman + Python) |
-| 8:30–9:00 | Randall o Javier | Cierre: resultados y beneficio |
+| Tiempo | Quién | Diapositiva | Contenido |
+|---|---|---|---|
+| 0:00–0:35 | Randall | 1 | Presentación e introducción |
+| 0:35–2:00 | Randall | 2 | Problema y utilidad real |
+| 2:00–3:00 | Javier | 3 | Requerimientos mínimos de red y aplicaciones utilizadas |
+| 3:00–4:00 | Javier | 4 | Arquitectura y comunicación |
+| 4:00–8:30 | Christopher | 5 + demo | Configuración, monitoreo, alerta a Webex y ejemplo NETCONF (Postman/Python) |
+| 8:30–9:00 | Randall | 6 | Resultados, beneficio y mejoras |
+
+Duración objetivo: 9:00; margen de 1:00. El guion original permitía Randall o Javier para el cierre; la versión HTML propone Randall.
 
 **Todos**
 - [ ] Ensayar una vez con cronómetro
@@ -196,22 +217,28 @@ Cada dato con su cita; nada de Wikipedia.
 **Randall**
 - [ ] Insertar el enlace del video en la sección Caso de Uso
 - [ ] Revisión final de ortografía y formato; exportar a **PDF**
+- [ ] Actualizar el índice en Word, verificar la paginación (el PDF previo tenía una página 3 en blanco), revisar numeración de figuras y tablas, justificación y referencias; buscar marcadores `PENDIENTE` / `completar` antes de exportar.
 
 **Christopher**
 - [ ] Reservar de nuevo el sandbox antes de grabar la demo — *la reserva venció el 24 nov a las 13:22*
-- [ ] Dar acceso al profesor o hacer público el repositorio — *hoy es privado; el enlace ya está en la Tabla 1 y el Anexo 1*
+- [ ] Dar acceso al profesor o hacer público el repositorio — *hoy es privado; el enlace ya está en la sección 3.3 y el Anexo 1*
 - [x] Hacer el merge a `main` (el informe dice «rama main») — *24 nov: `main` quedó al día con `Development`*
-- [ ] Revisión cruzada del PDF contra la tabla de puntaje de [REQUERIMIENTOS.md](REQUERIMIENTOS.md)
+- [ ] Revisión cruzada del PDF contra la tabla de puntaje de [REQUERIMIENTOS.md](REQUERIMIENTOS.md) — *revisar también que la sección 4 describa el sandbox on-demand como privado y no compartido, y que el rango de tiempos de monitoreo coincida con la tabla de resultados.*
 - [ ] Subir **una sola copia** a TEC Digital, ítem "Presentación Final: Desafío Redes"
 
 **Javier**
-- [ ] Verificar que el Anexo 2 tenga 3+ minutas y 3 bitácoras completas
+- [x] Preparar el entorno local de generación del informe — *25 nov: `.venv` con `python-docx`; se ejecutó correctamente `construir_informe.py` y se generó `Informe.docx`. Si Word tiene abierto el archivo, cerrarlo antes de regenerar para evitar `PermissionError`.*
+- [ ] Regenerar el informe con todos los cambios, comprobar A2.6, A2.7, 5.1 y 2.4 y revisar portada/índice y resultados conforme al reparto de revisión.
+- [ ] Verificar que el Anexo 2 tenga 3+ minutas y 3 bitácoras completas, sin evidencias pendientes ni tiempos sin validar.
+- [ ] Integrar los cambios locales de Javier en su rama y coordinar el merge a `Development` y posteriormente a `main` con Christopher; no se confirma un push posterior al 24 nov.
 - [ ] Confirmar que el enlace del video funciona desde otra cuenta
 
 **Todos (individual, obligatorio)**
 - [ ] Christopher llenó el formulario de evaluación individual y coevaluación
 - [ ] Randall llenó el formulario
 - [ ] Javier llenó el formulario
+
+Usar el enlace oficial del formulario que figura en el PDF del profesor; el enlace transcrito en `REQUERIMIENTOS.md` presenta una discrepancia y debe verificarse antes de responder.
 
 ---
 
@@ -225,3 +252,15 @@ Cada dato con su cita; nada de Wikipedia.
 | 4 (opcional) | 25 nov | Cierre y lecciones aprendidas | Javier |
 
 Cada minuta: fecha, hora, medio, asistentes, agenda, acuerdos, tareas con responsable y fecha, y una captura de la reunión como evidencia.
+
+---
+
+## Prioridades pendientes para la entrega (25–26 nov)
+
+1. **Video (todos; Javier coordina):** validar guion técnico, confirmar acceso al sandbox, ensayar, grabar con cámara, editar, comprobar duración máxima de 10 minutos y publicar con acceso verificable.
+2. **Anexo 2 (Javier + equipo):** agregar capturas reales de las reuniones 1 y 2, validar bitácoras y reflexión, e incorporar los cambios en el informe definitivo.
+3. **Informe (Randall + equipo):** verificar correcciones de RESTCONF y APA, completar conclusión de Randall, incorporar URL del video, actualizar índice y generar el PDF final.
+4. **Repositorio y entrega (Christopher + equipo):** verificar acceso del profesor, integrar las ramas, revisar rúbrica y subir una sola copia a TEC Digital.
+5. **Evaluación (cada integrante):** completar individualmente el formulario obligatorio una sola vez.
+
+> No se han confirmado la grabación final, publicación del video, capturas pendientes, validación independiente de Randall, actualización del repositorio ni entrega en TEC Digital. Mantener esas tareas abiertas hasta contar con evidencia o confirmación.

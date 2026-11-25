@@ -244,6 +244,7 @@ salto()
 H("1. Objetivos del Desafío")
 H("1.1 Objetivos de la parte investigativa", 2)
 B([
+    "Explicar qué es la programabilidad basada en modelos y por qué surgió, a partir del trabajo de los equipos de DevOps, las limitaciones de SNMP y los requisitos del RFC 3535.",
     "Describir el protocolo NETCONF (estándar, transporte, RPC y formato de mensajes) con un ejemplo de llamada a un equipo real.",
     "Describir el protocolo RESTCONF, su diferencia con NETCONF, su relación con YANG y su uso con Postman y con Python.",
 ])
@@ -258,6 +259,49 @@ salto()
 
 # ---------------------------------------------------------------- INVESTIGACIÓN
 H("2. Investigación")
+# ---- Bloque A (Randall): programabilidad basada en modelos
+H("2.1 ¿Qué es y por qué la programabilidad basada en modelos?", 2)
+H("2.1.1 ¿Qué hace un equipo de DevOps?", 3)
+P("DevOps es la combinación de filosofías culturales, prácticas y herramientas que aumenta la capacidad de una organización para entregar aplicaciones y servicios a alta velocidad. En este modelo, los equipos de desarrollo y de operaciones dejan de trabajar aislados: participan juntos en todo el ciclo de vida del servicio, desde el desarrollo y las pruebas hasta la implementación y la operación (Amazon Web Services, s. f.).")
+P("Un equipo de DevOps automatiza los procesos que antes eran manuales y lentos, y se apoya en prácticas como las siguientes (Amazon Web Services, s. f.):")
+B([
+    "**Integración y entrega continuas:** los cambios se integran, se prueban y se despliegan con frecuencia y de forma automática.",
+    "**Infraestructura como código:** la infraestructura se describe en archivos de texto versionados y se aprovisiona con herramientas, no a mano.",
+    "**Monitoreo y registro:** se miden las métricas y los registros de las aplicaciones y de la infraestructura para reaccionar a tiempo.",
+    "**Comunicación y colaboración:** herramientas y hábitos que comparten la información entre los equipos.",
+])
+P("En redes, aplicar estas prácticas exige que los equipos se puedan configurar y consultar por medio de APIs y no solo por la CLI, que es la base de la automatización de redes que promueve Cisco DevNet (Cisco Systems, s. f.-a). El caso de uso de este proyecto sigue esa idea: la configuración de las interfaces está en un archivo (`interfaces.json`) dentro de un repositorio de Git y se aplica con un script.")
+H("2.1.2 Rol de SNMP", 3)
+P("SNMP (Simple Network Management Protocol) es el protocolo con el que tradicionalmente se gestionan los equipos de red. Sigue un modelo de gestor y agente: una estación de gestión consulta o modifica las variables que cada agente expone en su MIB (Management Information Base) con las operaciones GetRequest, GetNextRequest y SetRequest, y el agente puede enviar avisos no solicitados (Trap). Los mensajes viajan sobre UDP: el agente recibe las peticiones en el puerto 161 y los traps se reciben en el puerto 162 (Case et al., 1990).")
+P("Su papel principal ha sido el **monitoreo**. En 2002, el IAB observó que SNMP funciona razonablemente bien para vigilar equipos y que está ampliamente desplegado para eso, pero que se usa poco para **configurarlos**. Los operadores dieron varias razones: muchos módulos MIB estándar no tienen objetos de escritura, el rendimiento es pobre al recuperar grandes volúmenes de datos (como las tablas de enrutamiento), su modelo de transacciones es difícil de implementar y no hay una forma sencilla de guardar y restaurar configuraciones. Por eso la configuración se seguía haciendo por CLI, que es cómoda para una persona pero difícil de automatizar y carece de un modelo de datos común. El mismo taller concluyó que eliminar SNMP no era una opción, pues sigue siendo útil para el monitoreo (Schönwälder, 2003).")
+H("2.1.3 ¿Qué es el RFC 3535?", 3)
+P("El RFC 3535, “Overview of the 2002 IAB Network Management Workshop”, es un documento informativo publicado en mayo de 2003 que resume el taller sobre gestión de redes que el IAB (Internet Architecture Board) organizó del 4 al 6 de junio de 2002 en Reston, Virginia. El taller reunió a operadores de red y a desarrolladores de protocolos para revisar el estado de la gestión de redes y orientar el trabajo futuro del IETF (Schönwälder, 2003).")
+P("Su aporte más conocido es la lista de 14 requisitos de los operadores para la gestión de la configuración. Entre ellos (Schönwälder, 2003):")
+B([
+    "La facilidad de uso es un requisito clave.",
+    "Separar con claridad los datos de configuración, el estado operativo y las estadísticas, y poder obtener cada uno por aparte.",
+    "Configurar la red como un todo y no equipo por equipo, con transacciones que abarquen varios dispositivos.",
+    "Respaldar y restaurar configuraciones como una operación estándar, y poder compararlas con herramientas de texto (diff y control de versiones).",
+    "Distinguir entre distribuir una configuración y activarla, de modo que un equipo pueda guardar varias configuraciones.",
+    "Un control de acceso con la granularidad de las operaciones, basado en roles.",
+])
+P("Entre sus recomendaciones, el taller pidió al IETF concentrar recursos en estandarizar mecanismos de gestión de la configuración y en tecnologías basadas en XML para configurar equipos (Schönwälder, 2003). A partir de esas observaciones se formó el grupo de trabajo NETCONF, que creó el protocolo del mismo nombre; después, el grupo NETMOD definió YANG como el lenguaje para modelar los datos que maneja NETCONF (Shafer, 2011).")
+H("2.1.4 Definición de programabilidad basada en modelos", 3)
+P("La programabilidad basada en modelos (Model-Driven Programmability) es una forma de gestionar los equipos de red en la que la configuración y los datos operativos se leen y se escriben por medio de una API estándar, cuya estructura la definen modelos de datos escritos en YANG. El modelo indica qué datos existen, de qué tipo son y qué restricciones cumplen; el protocolo (NETCONF, RESTCONF o gNMI) solo transporta esos datos (Cisco Systems, s. f.-b).")
+P("A diferencia de la CLI, el equipo recibe y devuelve datos estructurados que una máquina puede validar, y no texto pensado para personas. A diferencia de SNMP, el mismo modelo sirve para configurar y para monitorear, y el protocolo ofrece operaciones como validar o bloquear la configuración antes de cambiarla (Enns et al., 2011). Así se atienden varios de los requisitos del RFC 3535, como separar la configuración del estado y manejar transacciones (Shafer, 2011).")
+H("2.1.5 Bloques básicos de construcción", 3)
+P("La programabilidad basada en modelos se organiza en cuatro bloques que se apoyan uno sobre otro (Cisco Systems, s. f.-b):")
+tabla("Bloques básicos de la programabilidad basada en modelos.", ["Bloque", "Función", "Ejemplos", "En este proyecto"], [
+    ["Modelos de datos", "Definen la estructura, los tipos y las restricciones de los datos", "Modelos YANG del IETF, de OpenConfig y nativos de cada fabricante", "ietf-interfaces e ietf-ip"],
+    ["Protocolos", "Definen las operaciones para leer y escribir los datos", "NETCONF, RESTCONF y gNMI", "RESTCONF (Postman y Python) y NETCONF (ncclient)"],
+    ["Codificación", "Formato en que viajan los datos", "XML y JSON", "JSON en RESTCONF y XML en NETCONF"],
+    ["Transporte", "Canal seguro entre el cliente y el equipo", "SSH, HTTPS y gRPC sobre HTTP/2", "HTTPS (puerto 443) y SSH (puerto 830)"],
+], [3.0, 4.4, 4.2, 4.0])
+P("Cada protocolo tiene su propia especificación: NETCONF usa mensajes XML sobre SSH (Enns et al., 2011; Wasserman, 2011) y RESTCONF usa HTTPS con XML o JSON (Bierman et al., 2017). La codificación en JSON de los datos modelados con YANG está definida en el RFC 7951 (Lhotka, 2016).")
+H("2.1.6 ¿Qué es un modelo de datos?", 3)
+P("El RFC 3444 distingue dos niveles. Un **modelo de información** describe los objetos gestionados a nivel conceptual, sin depender de una implementación ni de un protocolo, y está pensado para diseñadores y operadores. Un **modelo de datos** describe esos objetos con un nivel de abstracción menor y con muchos más detalles: está pensado para quien implementa e incluye construcciones propias del protocolo, como las reglas para mapear los objetos a los mensajes. Los módulos MIB escritos en SMI son un ejemplo clásico de modelo de datos (Pras & Schönwälder, 2003).")
+P("En la gestión de redes actual, un modelo de datos es el esquema que define qué datos de configuración y de estado expone un equipo, cómo se organizan jerárquicamente, de qué tipo es cada uno y qué valores son válidos. Por ejemplo, el modelo `ietf-interfaces` define una lista de interfaces identificadas por su nombre, cada una con su descripción, su tipo y un indicador de si está habilitada (Bjørklund, 2018a). Como el modelo es común, un mismo script puede configurar equipos distintos que lo implementen sin depender de la sintaxis de la CLI de cada uno.")
+
 H("2.3 YANG con NETCONF", 2)
 H("2.3.1 ¿Qué es NETCONF y bajo qué estándar fue creado?", 3)
 P("NETCONF (Network Configuration Protocol) es un protocolo que permite instalar, manipular y borrar la configuración de dispositivos de red. Fue estandarizado por el IETF en el RFC 6241 (Enns et al., 2011), que actualiza el RFC 4741 original. Sus operaciones usan un mecanismo de llamadas a procedimiento remoto (RPC) con mensajes codificados en XML.")
@@ -411,13 +455,16 @@ refs = [
  "Cisco Systems. (s. f.-a). DevNet: Network automation and DevOps. Cisco DevNet. https://developer.cisco.com/",
  "Cisco Systems. (s. f.-b). Programmability Configuration Guide, Cisco IOS XE: Model-driven programmability. Cisco. https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/prog/configuration/",
  "Enns, R., Bjørklund, M., Schönwälder, J., & Bierman, A. (2011). Network Configuration Protocol (NETCONF) (RFC 6241). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6241",
+ "Lhotka, L. (2016). JSON Encoding of Data Modeled with YANG (RFC 7951). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc7951",
  "Postman. (s. f.). Postman Learning Center. https://learning.postman.com/docs/",
+ "Pras, A., & Schönwälder, J. (2003). On the Difference between Information Models and Data Models (RFC 3444). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc3444",
  "Progress Chef. (s. f.). Chef Infra documentation. https://docs.chef.io/",
  "Puppet. (s. f.). Puppet documentation. https://www.puppet.com/docs/puppet/",
  "Red Hat. (s. f.). Ansible documentation. https://docs.ansible.com/",
  "Reitz, K. (s. f.). Requests: HTTP for Humans. https://requests.readthedocs.io/",
  "Salt Project. (s. f.). Salt documentation. https://docs.saltproject.io/",
  "Schönwälder, J. (2003). Overview of the 2002 IAB Network Management Workshop (RFC 3535). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc3535",
+ "Shafer, P. (2011). An Architecture for Network Management Using NETCONF and YANG (RFC 6244). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6244",
  "Wasserman, M. (2011). Using the NETCONF Protocol over Secure Shell (SSH) (RFC 6242). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6242",
  "Webex. (s. f.). Webex for Developers: Messages API. Cisco. https://developer.webex.com/docs/api/v1/messages",
 ]

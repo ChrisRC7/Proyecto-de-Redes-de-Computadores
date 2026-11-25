@@ -459,7 +459,7 @@ P("**Requerimientos** para usarlo con RESTCONF:")
 B([
     "Postman instalado (aplicación de escritorio para Windows, macOS o Linux) o su versión web, con una cuenta para guardar y compartir las colecciones (Postman, s. f.).",
     "Conectividad IP con el equipo; en este proyecto, la VPN hacia el sandbox de Cisco.",
-    "RESTCONF habilitado en el equipo. En Cisco IOS XE se activa con los comandos `restconf` e `ip http secure-server`, y se necesita un usuario con privilegios (Cisco Systems, s. f.-b).",
+    "RESTCONF habilitado en el equipo. En Cisco IOS XE se activa con los comandos `restconf` e `ip http secure-server`, y la conexión se autentica con AAA usando un usuario de nivel de privilegio 15 (Cisco Systems, s. f.-b).",
     "Desactivar la verificación del certificado SSL en Postman cuando el equipo usa un certificado autofirmado, como el del sandbox.",
 ])
 P("**Uso:** se crea una petición, se elige el método, se escribe el URL de RESTCONF, se configura la autenticación básica (usuario y contraseña) y se agregan los encabezados `Accept` y `Content-Type` con el valor `application/yang-data+json`; en PUT y PATCH se agrega el cuerpo JSON. Al enviarla, Postman muestra el código HTTP, el tiempo y el cuerpo de la respuesta.")
@@ -624,26 +624,25 @@ refs = [
  "Bjørklund, M., & Berger, L. (2018). YANG Tree Diagrams (RFC 8340). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8340",
  "Case, J., Fedor, M., Schoffstall, M., & Davin, J. (1990). A Simple Network Management Protocol (SNMP) (RFC 1157). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc1157",
  "Cisco Systems. (s. f.-a). DevNet: Network automation and DevOps. Cisco DevNet. https://developer.cisco.com/",
- "Cisco Systems. (s. f.-b). Programmability Configuration Guide, Cisco IOS XE: Model-driven programmability. Cisco. https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/prog/configuration/",
+ "Cisco Systems. (s. f.-b). Programmability Configuration Guide, Cisco IOS XE Dublin 17.12.x. Cisco. https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/prog/configuration/1712/b_1712_programmability_cg.html",
  "Enns, R., Bjørklund, M., Schönwälder, J., & Bierman, A. (2011). Network Configuration Protocol (NETCONF) (RFC 6241). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6241",
  "Lhotka, L. (2016). JSON Encoding of Data Modeled with YANG (RFC 7951). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc7951",
  "Postman. (s. f.). Postman Learning Center. https://learning.postman.com/docs/",
  "Pras, A., & Schönwälder, J. (2003). On the Difference between Information Models and Data Models (RFC 3444). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc3444",
  "Progress Chef. (s. f.). Chef Infra documentation. https://docs.chef.io/",
- "Puppet. (s. f.). Puppet documentation. https://www.puppet.com/docs/puppet/",
+ "Puppet. (s. f.). Puppet Core documentation. https://help.puppet.com/core/current/Content/PuppetCore/puppet_index.htm",
  "Red Hat. (s. f.). Ansible documentation. https://docs.ansible.com/",
  "Reitz, K. (s. f.). Requests: HTTP for Humans. https://requests.readthedocs.io/",
  "Salt Project. (s. f.). Salt documentation. https://docs.saltproject.io/",
  "Schönwälder, J. (2003). Overview of the 2002 IAB Network Management Workshop (RFC 3535). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc3535",
  "Shafer, P. (2011). An Architecture for Network Management Using NETCONF and YANG (RFC 6244). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6244",
  "Wasserman, M. (2011). Using the NETCONF Protocol over Secure Shell (SSH) (RFC 6242). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6242",
- "Webex. (s. f.). Webex for Developers: Messages API. Cisco. https://developer.webex.com/docs/api/v1/messages",
+ "Webex. (s. f.). Webex for Developers: Messages API. Cisco. https://developer.webex.com/messaging/docs/api/v1/messages",
 ]
 for r_ in refs:
     p = doc.add_paragraph(); p.alignment = J
     p.paragraph_format.left_indent = Cm(1.0); p.paragraph_format.first_line_indent = Cm(-1.0)
     runs(p, r_)
-P("[[Revisar: el RFC 6242 y el RFC 8344 se citan como referencia de apoyo; verificar cada URL y fecha antes de entregar. Los (s. f.) se pueden reemplazar por la fecha de consulta.]]")
 
 # ---------------------------------------------------------------- ANEXO 1
 salto()

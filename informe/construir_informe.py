@@ -433,7 +433,7 @@ tabla("Comparación entre NETCONF y RESTCONF.", ["Aspecto", "NETCONF", "RESTCONF
     ["Operaciones", "RPC en XML: `get`, `get-config`, `edit-config`, `lock`, `commit`, etc.", "Métodos HTTP sobre un URL: GET, POST, PUT, PATCH y DELETE"],
     ["Almacenes y bloqueo", "Varios almacenes (`running`, `candidate`, `startup`), bloqueo y confirmación explícita", "Vista unificada; sin bloqueo explícito; las ediciones se confirman de inmediato"],
     ["Clientes típicos", "Bibliotecas como ncclient", "Cualquier cliente HTTP: Postman, curl o requests"],
-], [3.2, 6.2, 6.2])
+], [3.8, 5.9, 5.9])
 P("Fuentes de la tabla: Enns et al. (2011), Wasserman (2011) y Bierman et al. (2017).", 11)
 P("**Mayor ventaja:** su sencillez. Como usa HTTP con un estilo REST, cualquier herramienta o lenguaje que sepa hacer peticiones web puede gestionar el equipo, sin abrir sesiones ni manejar XML si se prefiere JSON (Bierman et al., 2017). En este proyecto eso permitió usar el mismo router desde Postman y desde Python con muy poco código; a cambio, cuando se necesitan transacciones con bloqueo o varios almacenes, NETCONF sigue siendo la opción adecuada.")
 H("2.4.2 Relación entre los modelos YANG y las llamadas API RESTCONF", 3)
@@ -477,12 +477,17 @@ tabla("Configuración en Postman de la petición que crea la Loopback501.", ["Ca
 P("**Con Python:** se usa la biblioteca requests, que permite enviar peticiones HTTP con autenticación, encabezados y cuerpo JSON en una sola llamada (Reitz, s. f.). El parámetro `verify=False` se usa porque el sandbox tiene un certificado autofirmado:")
 codigo("""
 import requests
-URL = "https://10.10.20.48/restconf/data/ietf-interfaces:interfaces/interface=Loopback501"
-H = {"Accept": "application/yang-data+json", "Content-Type": "application/yang-data+json"}
-cuerpo = {"ietf-interfaces:interface": {"name": "Loopback501", "type": "iana-if-type:softwareLoopback",
-                                        "description": "CE5301 - creada por RESTCONF", "enabled": True}}
+
+BASE = "https://10.10.20.48/restconf/data"
+URL = BASE + "/ietf-interfaces:interfaces/interface=Loopback501"
+H = {"Accept": "application/yang-data+json",
+     "Content-Type": "application/yang-data+json"}
+cuerpo = {"ietf-interfaces:interface": {
+    "name": "Loopback501", "type": "iana-if-type:softwareLoopback",
+    "description": "CE5301 - creada por RESTCONF", "enabled": True}}
+
 r = requests.put(URL, json=cuerpo, headers=H, auth=(USUARIO, CLAVE), verify=False)
-print(r.status_code)                                   # 201: interfaz creada
+print(r.status_code)  # 201: interfaz creada
 r = requests.get(URL, headers=H, auth=(USUARIO, CLAVE), verify=False)
 print(r.json()["ietf-interfaces:interface"]["description"])
 """)
@@ -490,10 +495,10 @@ P("Los scripts del caso de uso (sección 3.5 y Anexo 1) amplían este ejemplo pa
 H("2.4.5 Herramientas de automatización de la configuración de redes", 3)
 P("Las herramientas de gestión de la configuración aplican el estado deseado a muchos equipos a la vez. Se diferencian por quién inicia la comunicación: en el método **push**, el servidor central se conecta a los nodos y les envía la configuración; en el método **pull**, cada nodo tiene un agente que contacta periódicamente al servidor y descarga su configuración. Ansible, por ejemplo, es push por defecto, y su comando `ansible-pull` invierte esa arquitectura para que cada nodo descargue los playbooks desde un repositorio (Red Hat, s. f.). La siguiente tabla compara tres herramientas:")
 tabla("Comparación de herramientas de automatización de la configuración.", ["Herramienta", "Método", "Diseño del sistema central", "Sistemas operativos"], [
-    ["Ansible", "Push (pull opcional con `ansible-pull`)", "Un nodo de control con el inventario y los playbooks; sin agentes en los nodos, a los que se conecta por SSH, PowerShell remoting o APIs de red", "Nodo de control: Linux, macOS, BSD u otro UNIX con Python (Windows solo con WSL). Nodos: Linux, UNIX, Windows y equipos de red"],
+    ["Ansible", "Push; pull opcional con ansible-pull", "Un nodo de control con el inventario y los playbooks; sin agentes en los nodos, a los que se conecta por SSH, PowerShell remoting o APIs de red", "Nodo de control: Linux, macOS, BSD u otro UNIX con Python (Windows solo con WSL). Nodos: Linux, UNIX, Windows y equipos de red"],
     ["Puppet", "Pull", "Agente y servidor primario: cada agente pide su catálogo al servidor y lo aplica cada 30 minutos por defecto, por HTTPS con certificados; PuppetDB opcional; `puppet apply` sin servidor", "Servidor primario: *nix (Linux). Agentes: *nix, Windows y macOS"],
     ["Salt", "Push y pull", "Master y minions sobre un bus de mensajes ZeroMQ (puertos TCP 4505 y 4506 del master); los minions pueden programar su estado; Salt SSH sin agentes; varios masters o syndic para escalar; proxy minions para equipos de red", "Master: Linux (Debian, Ubuntu, Red Hat, Rocky, etc.) y macOS. Minions: además, Windows"],
-], [2.2, 2.6, 6.0, 4.8], 9)
+], [2.3, 3.2, 5.6, 4.5], 9)
 P("Fuentes de la tabla: Red Hat (s. f.), Puppet (s. f.) y Salt Project (s. f.).", 11)
 P("**Ansible** no necesita instalar nada en los nodos: el nodo de control ejecuta los módulos y se conecta a cada equipo. Para equipos de red tiene módulos que usan directamente NETCONF y RESTCONF (`netconf_config`, `restconf_get` y `restconf_config` de la colección `ansible.netcommon`), con los que se podría reproducir el caso de uso de este proyecto en un playbook (Red Hat, s. f.).")
 P("**Puppet** sigue una arquitectura cliente-servidor: un servidor primario guarda la configuración de los nodos, escrita en el lenguaje declarativo de Puppet; cada agente pide su catálogo individual y lo aplica de forma periódica. La comunicación es por HTTPS con certificados SSL, y PuppetDB puede guardar los datos que generan los agentes (Puppet, s. f.).")

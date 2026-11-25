@@ -652,7 +652,7 @@ for r_ in refs:
 # ---------------------------------------------------------------- ANEXO 1
 salto()
 H("Anexo 1: Configuraciones o Código Fuente")
-P("El código completo se encuentra en el repositorio del proyecto, https://github.com/ChrisRC7/Proyecto-de-Redes-de-Computadores, rama `main`, carpeta `caso-de-uso/`. [[PENDIENTE (Christopher): hacer el merge a main y dar acceso al profesor o hacer público el repositorio, que hoy es privado.]] Contenido:")
+P("El código completo se encuentra en el repositorio del proyecto, https://github.com/ChrisRC7/Proyecto-de-Redes-de-Computadores, rama `main`, carpeta `caso-de-uso/`. [[PENDIENTE (Christopher): dar acceso al profesor o hacer público el repositorio, que hoy es privado.]] Contenido:")
 tabla("Archivos del Anexo 1.", ["Archivo", "Descripción"], [
     ["configurar_interfaces.py", "Crear, listar, modificar, apagar, encender y borrar interfaces vía RESTCONF"],
     ["monitorear_interfaces.py", "Monitoreo de estado y alerta a Webex"],

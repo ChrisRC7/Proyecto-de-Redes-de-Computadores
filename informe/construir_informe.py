@@ -247,6 +247,7 @@ B([
     "Describir el lenguaje YANG, la estructura de sus modelos de datos y el uso de pyang para explorarlos.",
     "Describir el protocolo NETCONF (estándar, transporte, RPC y formato de mensajes) con un ejemplo de llamada a un equipo real.",
     "Describir el protocolo RESTCONF, su diferencia con NETCONF, su relación con YANG y su uso con Postman y con Python.",
+    "Comparar al menos tres herramientas de automatización de la configuración de redes según su método (push o pull), el diseño de su sistema central y los sistemas operativos en que funcionan.",
 ])
 H("1.2 Objetivos de la demostración del caso de uso", 2)
 B([
@@ -419,6 +420,86 @@ codigo("""
 </rpc>
 """)
 
+# ---- Bloque D (asignado a Javier; borrador para su revisión): RESTCONF y herramientas
+H("2.4 YANG con RESTCONF", 2)
+H("2.4.1 ¿Qué es RESTCONF? Diferencia con NETCONF y su mayor ventaja", 3)
+P("RESTCONF es un protocolo basado en HTTP que ofrece una interfaz programática para acceder a los datos definidos en YANG, usando los mismos conceptos de almacenes de datos (datastores) que NETCONF. Fue estandarizado por el IETF en el RFC 8040, en enero de 2017. Sus operaciones usan los métodos de HTTP (GET, POST, PUT, PATCH y DELETE) sobre recursos identificados por un URL, los datos viajan codificados en XML o en JSON con los tipos de medio `application/yang-data+xml` y `application/yang-data+json`, y el protocolo debe usarse siempre sobre TLS, es decir, con HTTPS (Bierman et al., 2017).")
+P("RESTCONF no pretende reemplazar a NETCONF: ofrece un subconjunto de sus funciones, sin exponer los almacenes de datos ni el bloqueo explícito, y es compatible con NETCONF. Los métodos trabajan sobre una vista unificada de la configuración; si el equipo tiene un almacén `candidate`, cada edición se confirma automáticamente en `running` en cuanto termina con éxito (Bierman et al., 2017). La siguiente tabla resume las diferencias:")
+tabla("Comparación entre NETCONF y RESTCONF.", ["Aspecto", "NETCONF", "RESTCONF"], [
+    ["Estándar", "RFC 6241 (2011)", "RFC 8040 (2017)"],
+    ["Transporte", "SSH, puerto TCP 830", "HTTPS (HTTP sobre TLS), puerto TCP 443"],
+    ["Codificación", "XML", "XML o JSON"],
+    ["Sesión", "Con estado: se abre una sesión y se intercambian capacidades con `<hello>`", "Sin estado: cada petición HTTP es independiente"],
+    ["Operaciones", "RPC en XML: `get`, `get-config`, `edit-config`, `lock`, `commit`, etc.", "Métodos HTTP sobre un URL: GET, POST, PUT, PATCH y DELETE"],
+    ["Almacenes y bloqueo", "Varios almacenes (`running`, `candidate`, `startup`), bloqueo y confirmación explícita", "Vista unificada; sin bloqueo explícito; las ediciones se confirman de inmediato"],
+    ["Clientes típicos", "Bibliotecas como ncclient", "Cualquier cliente HTTP: Postman, curl o requests"],
+], [3.2, 6.2, 6.2])
+P("Fuentes de la tabla: Enns et al. (2011), Wasserman (2011) y Bierman et al. (2017).", 11)
+P("**Mayor ventaja:** su sencillez. Como usa HTTP con un estilo REST, cualquier herramienta o lenguaje que sepa hacer peticiones web puede gestionar el equipo, sin abrir sesiones ni manejar XML si se prefiere JSON (Bierman et al., 2017). En este proyecto eso permitió usar el mismo router desde Postman y desde Python con muy poco código; a cambio, cuando se necesitan transacciones con bloqueo o varios almacenes, NETCONF sigue siendo la opción adecuada.")
+H("2.4.2 Relación entre los modelos YANG y las llamadas API RESTCONF", 3)
+P("En RESTCONF, el modelo YANG define la API. El cliente descubre la raíz con `/.well-known/host-meta`, que normalmente apunta a `/restconf`; debajo están los recursos `data` (configuración y estado), `operations` (las RPC definidas en los modelos) y `yang-library-version`. El URL de un dato se forma con la ruta de su árbol YANG: el primer nodo lleva el nombre del módulo como prefijo (`ietf-interfaces:interfaces`) y la entrada de una lista se indica con `=` y el valor de su llave (`interface=Loopback501`) (Bierman et al., 2017). El cuerpo de la petición es YANG data codificado en JSON o XML (Lhotka, 2016).")
+codigo("https://10.10.20.48/restconf/data/ietf-interfaces:interfaces/interface=Loopback501")
+B([
+    "`https://10.10.20.48/restconf`: raíz de RESTCONF del equipo.",
+    "`/data`: recurso con los datos de configuración y de estado.",
+    "`/ietf-interfaces:interfaces`: módulo YANG y su contenedor.",
+    "`/interface=Loopback501`: lista `interface` y valor de su llave `name`.",
+])
+P("Cada método HTTP equivale a una operación de NETCONF sobre el mismo modelo (Bierman et al., 2017):")
+tabla("Métodos de RESTCONF y su equivalente en NETCONF.", ["Método", "Operación NETCONF", "Uso en este proyecto", "Respuesta obtenida"], [
+    ["GET", "`get-config` o `get`", "Listar interfaces y leer su estado", "200"],
+    ["POST", "`edit-config` (create) o invocar una RPC", "Enviar la alerta a la API de Webex (fuera de RESTCONF)", "200"],
+    ["PUT", "`edit-config` (create o replace)", "Crear las interfaces Loopback", "201"],
+    ["PATCH", "`edit-config` (merge)", "Cambiar la descripción, apagar y encender", "204"],
+    ["DELETE", "`edit-config` (delete)", "Borrar las interfaces", "204"],
+], [2.0, 4.6, 6.2, 2.8])
+H("2.4.3 ¿Qué es Postman? Requerimientos y uso para llamadas API", 3)
+P("Postman es una plataforma para diseñar, probar y documentar APIs. Permite armar peticiones HTTP indicando el método, el URL, los encabezados, la autenticación y el cuerpo, ver la respuesta con su código y su tiempo, y guardar las peticiones en colecciones. Las colecciones usan variables de entorno, pueden incluir pruebas escritas en JavaScript que validan cada respuesta y se pueden ejecutar completas con el Collection Runner o desde la línea de comandos con Newman (Postman, s. f.).")
+P("**Requerimientos** para usarlo con RESTCONF:")
+B([
+    "Postman instalado (aplicación de escritorio para Windows, macOS o Linux) o su versión web, con una cuenta para guardar y compartir las colecciones (Postman, s. f.).",
+    "Conectividad IP con el equipo; en este proyecto, la VPN hacia el sandbox de Cisco.",
+    "RESTCONF habilitado en el equipo. En Cisco IOS XE se activa con los comandos `restconf` e `ip http secure-server`, y se necesita un usuario con privilegios (Cisco Systems, s. f.-b).",
+    "Desactivar la verificación del certificado SSL en Postman cuando el equipo usa un certificado autofirmado, como el del sandbox.",
+])
+P("**Uso:** se crea una petición, se elige el método, se escribe el URL de RESTCONF, se configura la autenticación básica (usuario y contraseña) y se agregan los encabezados `Accept` y `Content-Type` con el valor `application/yang-data+json`; en PUT y PATCH se agrega el cuerpo JSON. Al enviarla, Postman muestra el código HTTP, el tiempo y el cuerpo de la respuesta.")
+H("2.4.4 Llamadas RESTCONF con Postman y con Python", 3)
+P("**Con Postman:** la colección del proyecto (sección 3.5) contiene las diez peticiones del caso de uso. Esta es la configuración de la petición que crea una interfaz:")
+tabla("Configuración en Postman de la petición que crea la Loopback501.", ["Campo", "Valor"], [
+    ["Método", "PUT"],
+    ["URL", "`https://{{host}}/restconf/data/ietf-interfaces:interfaces/interface=Loopback501`"],
+    ["Autorización", "Basic Auth con las variables `{{username}}` y `{{password}}`"],
+    ["Encabezados", "`Accept` y `Content-Type`: `application/yang-data+json`"],
+    ["Cuerpo (raw, JSON)", "El YANG data de la sección 2.2.2"],
+    ["Prueba", "El código de respuesta es 2xx y el tiempo es menor a 5 s"],
+    ["Respuesta esperada", "201 Created (o 204 si la interfaz ya existía)"],
+], [4.0, 11.6], 9)
+P("**Con Python:** se usa la biblioteca requests, que permite enviar peticiones HTTP con autenticación, encabezados y cuerpo JSON en una sola llamada (Reitz, s. f.). El parámetro `verify=False` se usa porque el sandbox tiene un certificado autofirmado:")
+codigo("""
+import requests
+URL = "https://10.10.20.48/restconf/data/ietf-interfaces:interfaces/interface=Loopback501"
+H = {"Accept": "application/yang-data+json", "Content-Type": "application/yang-data+json"}
+cuerpo = {"ietf-interfaces:interface": {"name": "Loopback501", "type": "iana-if-type:softwareLoopback",
+                                        "description": "CE5301 - creada por RESTCONF", "enabled": True}}
+r = requests.put(URL, json=cuerpo, headers=H, auth=(USUARIO, CLAVE), verify=False)
+print(r.status_code)                                   # 201: interfaz creada
+r = requests.get(URL, headers=H, auth=(USUARIO, CLAVE), verify=False)
+print(r.json()["ietf-interfaces:interface"]["description"])
+""")
+P("Los scripts del caso de uso (sección 3.5 y Anexo 1) amplían este ejemplo para recorrer una lista de interfaces, medir el tiempo de cada petición y guardar los resultados.")
+H("2.4.5 Herramientas de automatización de la configuración de redes", 3)
+P("Las herramientas de gestión de la configuración aplican el estado deseado a muchos equipos a la vez. Se diferencian por quién inicia la comunicación: en el método **push**, el servidor central se conecta a los nodos y les envía la configuración; en el método **pull**, cada nodo tiene un agente que contacta periódicamente al servidor y descarga su configuración. Ansible, por ejemplo, es push por defecto, y su comando `ansible-pull` invierte esa arquitectura para que cada nodo descargue los playbooks desde un repositorio (Red Hat, s. f.). La siguiente tabla compara tres herramientas:")
+tabla("Comparación de herramientas de automatización de la configuración.", ["Herramienta", "Método", "Diseño del sistema central", "Sistemas operativos"], [
+    ["Ansible", "Push (pull opcional con `ansible-pull`)", "Un nodo de control con el inventario y los playbooks; sin agentes en los nodos, a los que se conecta por SSH, PowerShell remoting o APIs de red", "Nodo de control: Linux, macOS, BSD u otro UNIX con Python (Windows solo con WSL). Nodos: Linux, UNIX, Windows y equipos de red"],
+    ["Puppet", "Pull", "Agente y servidor primario: cada agente pide su catálogo al servidor y lo aplica cada 30 minutos por defecto, por HTTPS con certificados; PuppetDB opcional; `puppet apply` sin servidor", "Servidor primario: *nix (Linux). Agentes: *nix, Windows y macOS"],
+    ["Salt", "Push y pull", "Master y minions sobre un bus de mensajes ZeroMQ (puertos TCP 4505 y 4506 del master); los minions pueden programar su estado; Salt SSH sin agentes; varios masters o syndic para escalar; proxy minions para equipos de red", "Master: Linux (Debian, Ubuntu, Red Hat, Rocky, etc.) y macOS. Minions: además, Windows"],
+], [2.2, 2.6, 6.0, 4.8], 9)
+P("Fuentes de la tabla: Red Hat (s. f.), Puppet (s. f.) y Salt Project (s. f.).", 11)
+P("**Ansible** no necesita instalar nada en los nodos: el nodo de control ejecuta los módulos y se conecta a cada equipo. Para equipos de red tiene módulos que usan directamente NETCONF y RESTCONF (`netconf_config`, `restconf_get` y `restconf_config` de la colección `ansible.netcommon`), con los que se podría reproducir el caso de uso de este proyecto en un playbook (Red Hat, s. f.).")
+P("**Puppet** sigue una arquitectura cliente-servidor: un servidor primario guarda la configuración de los nodos, escrita en el lenguaje declarativo de Puppet; cada agente pide su catálogo individual y lo aplica de forma periódica. La comunicación es por HTTPS con certificados SSL, y PuppetDB puede guardar los datos que generan los agentes (Puppet, s. f.).")
+P("**Salt** combina ambos métodos: el master publica trabajos en un bus de mensajes y los minions suscritos los ejecutan (push), pero un minion también puede programar la aplicación de su estado, por ejemplo cada 60 minutos, o trabajar sin master. Salt SSH ejecuta comandos sin instalar el minion, y los proxy minions sirven para equipos de red que no pueden correr un minion propio (Salt Project, s. f.).")
+P("Existen otras herramientas con un diseño parecido al de Puppet, como Chef, en la que un servidor central (Chef Infra Server) guarda las políticas y los cookbooks y el cliente de cada nodo aplica las recetas, escritas en Ruby (Progress Chef, s. f.).")
+
 salto()
 # ---------------------------------------------------------------- CASO DE USO
 H("3. Caso de Uso")
@@ -428,7 +509,7 @@ H("3.2 Solución escogida", 2)
 B([
     "**Configuración:** crear, modificar, apagar/encender y borrar interfaces con RESTCONF, desde Postman (PUT, PATCH, DELETE) y desde un script de Python que aplica una lista de interfaces definida en `interfaces.json` (configuración masiva).",
     "**Monitoreo:** consultar `ietf-interfaces:interfaces-state` y comparar el estado administrativo (`admin-status`) y el operativo (`oper-status`) de cada interfaz.",
-    "**Alertas a Webex:** si una interfaz está caída, el script envía un mensaje a una sala de Webex mediante la API REST de mensajes, usando un bot creado en developer.webex.com.",
+    "**Alertas a Webex:** si una interfaz está caída, el script envía un mensaje a una sala de Webex mediante la API REST de mensajes, usando un bot creado en developer.webex.com (Webex, s. f.).",
 ])
 H("3.3 Herramientas y requerimientos", 2)
 tabla("Herramientas y requerimientos del caso de uso.", ["Componente", "Detalle"], [

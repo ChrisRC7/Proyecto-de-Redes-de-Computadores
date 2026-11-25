@@ -245,6 +245,7 @@ H("1. Objetivos del Desafío")
 H("1.1 Objetivos de la parte investigativa", 2)
 B([
     "Explicar qué es la programabilidad basada en modelos y por qué surgió, a partir del trabajo de los equipos de DevOps, las limitaciones de SNMP y los requisitos del RFC 3535.",
+    "Describir el lenguaje YANG, la estructura de sus modelos de datos y el uso de pyang para explorarlos.",
     "Describir el protocolo NETCONF (estándar, transporte, RPC y formato de mensajes) con un ejemplo de llamada a un equipo real.",
     "Describir el protocolo RESTCONF, su diferencia con NETCONF, su relación con YANG y su uso con Postman y con Python.",
 ])
@@ -301,6 +302,92 @@ P("Cada protocolo tiene su propia especificación: NETCONF usa mensajes XML sobr
 H("2.1.6 ¿Qué es un modelo de datos?", 3)
 P("El RFC 3444 distingue dos niveles. Un **modelo de información** describe los objetos gestionados a nivel conceptual, sin depender de una implementación ni de un protocolo, y está pensado para diseñadores y operadores. Un **modelo de datos** describe esos objetos con un nivel de abstracción menor y con muchos más detalles: está pensado para quien implementa e incluye construcciones propias del protocolo, como las reglas para mapear los objetos a los mensajes. Los módulos MIB escritos en SMI son un ejemplo clásico de modelo de datos (Pras & Schönwälder, 2003).")
 P("En la gestión de redes actual, un modelo de datos es el esquema que define qué datos de configuración y de estado expone un equipo, cómo se organizan jerárquicamente, de qué tipo es cada uno y qué valores son válidos. Por ejemplo, el modelo `ietf-interfaces` define una lista de interfaces identificadas por su nombre, cada una con su descripción, su tipo y un indicador de si está habilitada (Bjørklund, 2018a). Como el modelo es común, un mismo script puede configurar equipos distintos que lo implementen sin depender de la sintaxis de la CLI de cada uno.")
+
+# ---- Bloque B (Randall): YANG
+H("2.2 Introducción a YANG", 2)
+H("2.2.1 ¿Qué es YANG?", 3)
+P("YANG es un lenguaje de modelado de datos que se usa para modelar los datos de configuración, los datos de estado, las operaciones remotas (RPC) y las notificaciones de los protocolos de gestión de red (Bjørklund, 2016). La primera versión se publicó en el RFC 6020 como el lenguaje de modelado de NETCONF (Bjørklund, 2010), y la versión vigente, YANG 1.1, en el RFC 7950 (Bjørklund, 2016).")
+P("Los modelos YANG se escriben en módulos de texto legibles por personas y organizan los datos como un árbol jerárquico. El lenguaje no depende del protocolo: los datos que describe se pueden codificar en XML (Bjørklund, 2016) o en JSON (Lhotka, 2016) y se pueden transportar con NETCONF o con RESTCONF (Bierman et al., 2017).")
+H("2.2.2 Lenguaje YANG, modelos de datos YANG y YANG data", 3)
+P("Los tres términos se refieren a niveles distintos, de forma parecida a un lenguaje de programación, un programa escrito en él y los datos que ese programa maneja (Bjørklund, 2016, 2018a; Lhotka, 2016):")
+tabla("Diferencia entre lenguaje YANG, modelos de datos YANG y YANG data.", ["Término", "Qué es", "Ejemplo en este proyecto"], [
+    ["Lenguaje YANG", "La gramática: las sentencias (module, container, list, leaf, type, augment, etc.) y sus reglas, definidas en el RFC 7950", "Las sentencias con las que está escrito ietf-interfaces"],
+    ["Modelo de datos YANG", "Un módulo escrito en YANG que define la estructura de un conjunto de datos; lo publican el IETF, OpenConfig o los fabricantes", "ietf-interfaces (RFC 8343) e ietf-ip (RFC 8344)"],
+    ["YANG data", "Los datos concretos de un equipo (instancias) que cumplen con un modelo, codificados en XML o JSON", "La Loopback501 con su descripción y su dirección 10.150.1.1"],
+], [3.4, 7.2, 5.0])
+P("El siguiente extracto simplificado del modelo `ietf-interfaces` está escrito en lenguaje YANG (Bjørklund, 2018a):")
+codigo("""
+module ietf-interfaces {
+  namespace "urn:ietf:params:xml:ns:yang:ietf-interfaces";
+  prefix if;
+  container interfaces {
+    list interface {
+      key "name";
+      leaf name        { type string; }
+      leaf description { type string; }
+      leaf type        { type identityref { base interface-type; } mandatory true; }
+      leaf enabled     { type boolean; default "true"; }
+    }
+  }
+}
+""")
+P("Y este es un ejemplo de YANG data: el cuerpo JSON que el script `configurar_interfaces.py` envía con PUT para crear la Loopback501. Cada nombre lleva el prefijo del módulo que lo define cuando cambia de módulo (Lhotka, 2016); por eso `ietf-ip:ipv4` indica que ese contenedor viene del modelo `ietf-ip`, que lo agrega a cada interfaz (Bjørklund, 2018b):")
+codigo("""
+{
+  "ietf-interfaces:interface": {
+    "name": "Loopback501",
+    "description": "CE5301 - creada por RESTCONF",
+    "type": "iana-if-type:softwareLoopback",
+    "enabled": true,
+    "ietf-ip:ipv4": {
+      "address": [{"ip": "10.150.1.1", "netmask": "255.255.255.255"}]
+    }
+  }
+}
+""")
+H("2.2.3 Estructura del modelo de datos YANG y cómo se usa", 3)
+P("Un módulo YANG tiene un encabezado y un cuerpo con las definiciones (Bjørklund, 2016):")
+B([
+    "**Encabezado:** el nombre del módulo, su `namespace` (identificador único usado en XML), su `prefix`, las sentencias `import` de otros módulos, la organización, el contacto, la descripción y las revisiones con su fecha.",
+    "**Nodos de datos:** `container` agrupa nodos relacionados; `list` es una secuencia de entradas identificadas por una llave (`key`); `leaf` guarda un valor simple, y `leaf-list` guarda varios valores del mismo tipo.",
+    "**Tipos:** tipos base (`string`, `boolean`, `int32`, `enumeration`, `identityref`, etc.) y tipos derivados definidos con `typedef`.",
+    "**Reutilización y extensión:** `grouping` y `uses` reutilizan conjuntos de nodos, y `augment` agrega nodos a otro módulo. Así, `ietf-ip` agrega los contenedores `ipv4` e `ipv6` a cada interfaz de `ietf-interfaces` (Bjørklund, 2018b).",
+    "**Configuración y estado:** `config true` marca los datos de configuración, que se pueden leer y escribir, y `config false` marca los datos de estado, que solo se leen, como `oper-status`.",
+    "**Operaciones y eventos:** `rpc` y `action` definen operaciones, y `notification` define los avisos que envía el equipo.",
+    "**Partes opcionales:** `feature` e `if-feature` marcan partes del modelo que un equipo puede implementar o no.",
+])
+P("**Cómo se usa:** el equipo anuncia qué módulos implementa; en NETCONF lo hace al abrir la sesión, con las capacidades del mensaje `<hello>` y la biblioteca YANG (`yang-library`) (Bjørklund, 2016), como se vio con el router del sandbox en la sección 2.3.4. Con el modelo, el cliente sabe qué datos puede pedir y cómo debe escribirlos. La ruta del árbol se traduce directamente en la petición: en RESTCONF, el contenedor `interfaces` y la entrada `Loopback501` de la lista se convierten en el URL `/restconf/data/ietf-interfaces:interfaces/interface=Loopback501` (Bierman et al., 2017), y en NETCONF el `namespace` del módulo se usa en el filtro XML del `get-config`. El equipo valida los datos contra el modelo y rechaza los que no cumplen sus tipos o restricciones (Bjørklund, 2016).")
+H("2.2.4 ¿Qué es pyang y cómo se usa?", 3)
+P("pyang es una herramienta de código abierto escrita en Python que valida módulos YANG, los transforma a otros formatos y genera código a partir de ellos (Bjørklund, s. f.). Se instala con `pip install pyang` y se usa desde la línea de comandos:")
+tabla("Usos comunes de pyang.", ["Comando", "Para qué sirve"], [
+    ["`pyang modulo.yang`", "Valida el módulo y reporta errores y advertencias"],
+    ["`pyang -f tree modulo.yang`", "Muestra el módulo como árbol, con la notación del RFC 8340"],
+    ["`pyang -f tree --tree-depth 3 modulo.yang`", "Limita la profundidad del árbol"],
+    ["`pyang -f tree --tree-path /interfaces/interface modulo.yang`", "Muestra solo una rama del árbol"],
+    ["`pyang -f sample-xml-skeleton modulo.yang`", "Genera un esqueleto XML de datos de ejemplo"],
+    ["`pyang -p carpeta modulo.yang`", "Indica dónde buscar los módulos importados"],
+], [8.6, 7.0])
+P("En este proyecto se usó pyang 2.7.1 con los módulos `ietf-interfaces` (revisión 2018-02-20) e `ietf-ip` (revisión 2018-02-22). Este es el inicio del árbol de `ietf-interfaces`:")
+codigo("""
+> pyang -f tree ietf-interfaces.yang
+module: ietf-interfaces
+  +--rw interfaces
+  |  +--rw interface* [name]
+  |     +--rw name                        string
+  |     +--rw description?                string
+  |     +--rw type                        identityref
+  |     +--rw enabled?                    boolean
+  |     +--rw link-up-down-trap-enable?   enumeration {if-mib}?
+  |     +--ro admin-status                enumeration {if-mib}?
+  |     +--ro oper-status                 enumeration
+  |     ...
+  x--ro interfaces-state
+     x--ro interface* [name]
+        ...
+""")
+P("En el árbol, cada línea es un nodo y la sangría muestra la jerarquía. `rw` indica datos de configuración y `ro`, datos de estado; `*` marca una lista y entre corchetes va su llave; `?` marca un nodo opcional; `{if-mib}?` indica que el nodo depende de una función opcional, y `x` marca un nodo obsoleto (deprecated). Los nodos que vienen de otro módulo llevan su prefijo, como `ip:ipv4` cuando se carga también `ietf-ip` (Bjørklund & Berger, 2018).")
+P("El árbol sirvió para diseñar el caso de uso: muestra que `name`, `description`, `type` y `enabled` se pueden escribir (`rw`), por lo que se crean y modifican con PUT y PATCH, y que `oper-status` es de solo lectura (`ro`), por lo que el monitoreo solo lo consulta. También muestra que `interfaces-state` está obsoleto (Bjørklund, 2018a), aunque el IOS XE 17.12 del sandbox lo sigue publicando y el script de monitoreo lo usa.")
+figura(os.path.join(TER, "11_yang.png"), "Árbol del modelo ietf-interfaces generado con pyang; la rama interfaces-state aparece marcada como obsoleta (x).", 15.0)
 
 H("2.3 YANG con NETCONF", 2)
 H("2.3.1 ¿Qué es NETCONF y bajo qué estándar fue creado?", 3)
@@ -448,9 +535,11 @@ refs = [
  "Amazon Web Services. (s. f.). ¿Qué es DevOps? https://aws.amazon.com/es/devops/what-is-devops/",
  "Bierman, A., Bjørklund, M., & Watsen, K. (2017). RESTCONF Protocol (RFC 8040). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8040",
  "Bjørklund, M. (s. f.). pyang [Software]. GitHub. https://github.com/mbj4668/pyang",
+ "Bjørklund, M. (2010). YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF) (RFC 6020). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc6020",
  "Bjørklund, M. (2016). The YANG 1.1 Data Modeling Language (RFC 7950). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc7950",
  "Bjørklund, M. (2018a). A YANG Data Model for Interface Management (RFC 8343). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8343",
  "Bjørklund, M. (2018b). A YANG Data Model for IP Management (RFC 8344). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8344",
+ "Bjørklund, M., & Berger, L. (2018). YANG Tree Diagrams (RFC 8340). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc8340",
  "Case, J., Fedor, M., Schoffstall, M., & Davin, J. (1990). A Simple Network Management Protocol (SNMP) (RFC 1157). Internet Engineering Task Force. https://www.rfc-editor.org/info/rfc1157",
  "Cisco Systems. (s. f.-a). DevNet: Network automation and DevOps. Cisco DevNet. https://developer.cisco.com/",
  "Cisco Systems. (s. f.-b). Programmability Configuration Guide, Cisco IOS XE: Model-driven programmability. Cisco. https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/prog/configuration/",

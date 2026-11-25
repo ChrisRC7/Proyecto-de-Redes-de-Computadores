@@ -111,7 +111,7 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Integrar el envío de alerta a Webex en el script de monitoreo (cuando una interfaz esté caída) — *mensaje de prueba recibido (HTTP 200)*
 - [x] Guardar capturas de cada request/response (inputs y outputs) y tiempos de respuesta para la validación cuantitativa — *listo 22 nov: 11 capturas de terminal (`caso-de-uso/capturas/terminal/`), alerta en Webex, VPN y reserva; CSV y logs en `caso-de-uso/resultados/`. Postman: `caso-de-uso/capturas/postman/`*
 - [x] Preparar la demo del video — *`caso-de-uso/demo/demo_caso_de_uso.ps1` (pasos con pausa), guion con tiempos en `caso-de-uso/demo/GUION_DEMO.md` y grabación de respaldo sin audio `caso-de-uso/capturas/video/demo_terminal_sin_audio.mp4` (2:45) con su guion de lectura sincronizado `GUION_LECTURA.md`. La parte con cámara y voz la graba Christopher*
-- [x] Subir código al repositorio con README — *push de `ChrisDevelopment` a GitHub (22 nov); `Development` actualizado el 24 nov; falta merge a `main`*
+- [x] Subir código al repositorio con README — *push de `ChrisDevelopment` a GitHub (22 nov); `Development` y `main` actualizados el 24 nov*
 
 **Randall**
 - [ ] Probar la colección y los scripts en su máquina siguiendo el README (validación independiente)
@@ -200,7 +200,7 @@ Cada dato con su cita; nada de Wikipedia.
 **Christopher**
 - [ ] Reservar de nuevo el sandbox antes de grabar la demo — *la reserva venció el 24 nov a las 13:22*
 - [ ] Dar acceso al profesor o hacer público el repositorio — *hoy es privado; el enlace ya está en la Tabla 1 y el Anexo 1*
-- [ ] Hacer el merge a `main` (el informe dice «rama main»)
+- [x] Hacer el merge a `main` (el informe dice «rama main») — *24 nov: `main` quedó al día con `Development`*
 - [ ] Revisión cruzada del PDF contra la tabla de puntaje de [REQUERIMIENTOS.md](REQUERIMIENTOS.md)
 - [ ] Subir **una sola copia** a TEC Digital, ítem "Presentación Final: Desafío Redes"
 

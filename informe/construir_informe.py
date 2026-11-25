@@ -202,7 +202,7 @@ TER = os.path.join(CAP, "terminal")
 # ---------------------------------------------------------------- PORTADA
 for _ in range(3):
     doc.add_paragraph()
-for t in ["Instituto Tecnológico de Costa Rica", "Escuela de Ingeniería Electrónica",
+for t in ["Instituto Tecnológico de Costa Rica", "Escuela de Ingeniería en Computadores",
           "CE-5301 Redes de Computadoras", "II Semestre 2026"]:
     p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     runs(p, f"**{t}**")
@@ -216,7 +216,8 @@ for _ in range(2):
     doc.add_paragraph()
 p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 runs(p, "**Integrantes**")
-for n in ["Christopher Rodríguez", "Randall Bolaños", "Javier Tenorio"]:
+for n in ["Christopher David Rodríguez Cordero, carné 2022040771", "Randall Bolaños López, carné 2019043784",
+          "Javier Tenorio Cervantes, carné 2020065308"]:
     p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER; runs(p, n)
 runs(doc.paragraphs[-1], "")
 for _ in range(1):
@@ -225,8 +226,6 @@ p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 runs(p, "Profesor: Rodolfo Tacsan Chaves")
 p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 runs(p, "Fecha de entrega: 26 de noviembre de 2026")
-p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-runs(p, "[[Verificar apellidos completos, carné y sede/escuela antes de entregar]]")
 salto()
 
 # ---------------------------------------------------------------- ÍNDICE
@@ -438,7 +437,7 @@ tabla("Herramientas y requerimientos del caso de uso.", ["Componente", "Detalle"
     ["Modelos YANG", "ietf-interfaces (RFC 8343) e ietf-ip (RFC 8344)"],
     ["Cliente", "Postman; Python 3 con requests y ncclient"],
     ["Alertas", "Bot de Webex “CE5301 Alertas RESTCONF” y sala “CE5301 - Alertas de red”"],
-    ["Repositorio", "Rama ChrisDevelopment en GitHub (código, colección Postman y resultados)"],
+    ["Repositorio", "https://github.com/ChrisRC7/Proyecto-de-Redes-de-Computadores, rama main (código, colección Postman y resultados)"],
 ], [4.0, 11.6])
 P("**Nota sobre el sandbox:** los sandboxes compartidos Always On (Catalyst 8000v y 9000v) estaban caídos del lado de Cisco entre el 19 y el 22 de noviembre (reportado por otros usuarios en la Cisco Community), por lo que se reservó el Catalyst 8000v on-demand, privado, con acceso por VPN.")
 figura(os.path.join(CAP, "sandbox_cat8kv_ondemand_reserva.jpg"), "Reserva del sandbox Catalyst 8000v on-demand en developer.cisco.com.", 14)
@@ -568,7 +567,7 @@ P("[[Revisar: el RFC 6242 y el RFC 8344 se citan como referencia de apoyo; verif
 # ---------------------------------------------------------------- ANEXO 1
 salto()
 H("Anexo 1: Configuraciones o Código Fuente")
-P("El código completo se encuentra en el repositorio del proyecto, rama `ChrisDevelopment`, carpeta `caso-de-uso/`: [[PENDIENTE: insertar el enlace de GitHub tras el merge a main]]. Contenido:")
+P("El código completo se encuentra en el repositorio del proyecto, https://github.com/ChrisRC7/Proyecto-de-Redes-de-Computadores, rama `main`, carpeta `caso-de-uso/`. [[PENDIENTE (Christopher): hacer el merge a main y dar acceso al profesor o hacer público el repositorio, que hoy es privado.]] Contenido:")
 tabla("Archivos del Anexo 1.", ["Archivo", "Descripción"], [
     ["configurar_interfaces.py", "Crear, listar, modificar, apagar, encender y borrar interfaces vía RESTCONF"],
     ["monitorear_interfaces.py", "Monitoreo de estado y alerta a Webex"],

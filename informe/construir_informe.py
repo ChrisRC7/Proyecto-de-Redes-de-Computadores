@@ -297,7 +297,7 @@ tabla("Bloques básicos de la programabilidad basada en modelos.", ["Bloque", "F
     ["Protocolos", "Definen las operaciones para leer y escribir los datos", "NETCONF, RESTCONF y gNMI", "RESTCONF (Postman y Python) y NETCONF (ncclient)"],
     ["Codificación", "Formato en que viajan los datos", "XML y JSON", "JSON en RESTCONF y XML en NETCONF"],
     ["Transporte", "Canal seguro entre el cliente y el equipo", "SSH, HTTPS y gRPC sobre HTTP/2", "HTTPS (puerto 443) y SSH (puerto 830)"],
-], [3.0, 4.4, 4.2, 4.0])
+], [3.5, 4.2, 4.1, 3.8])
 P("Cada protocolo tiene su propia especificación: NETCONF usa mensajes XML sobre SSH (Enns et al., 2011; Wasserman, 2011) y RESTCONF usa HTTPS con XML o JSON (Bierman et al., 2017). La codificación en JSON de los datos modelados con YANG está definida en el RFC 7951 (Lhotka, 2016).")
 H("2.1.6 ¿Qué es un modelo de datos?", 3)
 P("El RFC 3444 distingue dos niveles. Un **modelo de información** describe los objetos gestionados a nivel conceptual, sin depender de una implementación ni de un protocolo, y está pensado para diseñadores y operadores. Un **modelo de datos** describe esos objetos con un nivel de abstracción menor y con muchos más detalles: está pensado para quien implementa e incluye construcciones propias del protocolo, como las reglas para mapear los objetos a los mensajes. Los módulos MIB escritos en SMI son un ejemplo clásico de modelo de datos (Pras & Schönwälder, 2003).")
@@ -314,7 +314,7 @@ tabla("Diferencia entre lenguaje YANG, modelos de datos YANG y YANG data.", ["T�
     ["Lenguaje YANG", "La gramática: las sentencias (module, container, list, leaf, type, augment, etc.) y sus reglas, definidas en el RFC 7950", "Las sentencias con las que está escrito ietf-interfaces"],
     ["Modelo de datos YANG", "Un módulo escrito en YANG que define la estructura de un conjunto de datos; lo publican el IETF, OpenConfig o los fabricantes", "ietf-interfaces (RFC 8343) e ietf-ip (RFC 8344)"],
     ["YANG data", "Los datos concretos de un equipo (instancias) que cumplen con un modelo, codificados en XML o JSON", "La Loopback501 con su descripción y su dirección 10.150.1.1"],
-], [3.4, 7.2, 5.0])
+], [4.0, 6.6, 5.0])
 P("El siguiente extracto simplificado del modelo `ietf-interfaces` está escrito en lenguaje YANG (Bjørklund, 2018a):")
 codigo("""
 module ietf-interfaces {
@@ -356,17 +356,19 @@ B([
     "**Operaciones y eventos:** `rpc` y `action` definen operaciones, y `notification` define los avisos que envía el equipo.",
     "**Partes opcionales:** `feature` e `if-feature` marcan partes del modelo que un equipo puede implementar o no.",
 ])
-P("**Cómo se usa:** el equipo anuncia qué módulos implementa; en NETCONF lo hace al abrir la sesión, con las capacidades del mensaje `<hello>` y la biblioteca YANG (`yang-library`) (Bjørklund, 2016), como se vio con el router del sandbox en la sección 2.3.4. Con el modelo, el cliente sabe qué datos puede pedir y cómo debe escribirlos. La ruta del árbol se traduce directamente en la petición: en RESTCONF, el contenedor `interfaces` y la entrada `Loopback501` de la lista se convierten en el URL `/restconf/data/ietf-interfaces:interfaces/interface=Loopback501` (Bierman et al., 2017), y en NETCONF el `namespace` del módulo se usa en el filtro XML del `get-config`. El equipo valida los datos contra el modelo y rechaza los que no cumplen sus tipos o restricciones (Bjørklund, 2016).")
+P("**Cómo se usa:** el equipo anuncia qué módulos implementa; en NETCONF lo hace al abrir la sesión, con las capacidades del mensaje `<hello>` y la biblioteca YANG (`yang-library`) (Bjørklund, 2016), como se vio con el router del sandbox en la sección 2.3.4. Con el modelo, el cliente sabe qué datos puede pedir y cómo debe escribirlos. La ruta del árbol se traduce directamente en la petición. En RESTCONF, el contenedor `interfaces` y la entrada `Loopback501` de la lista se convierten en este URL (Bierman et al., 2017):")
+codigo("https://10.10.20.48/restconf/data/ietf-interfaces:interfaces/interface=Loopback501")
+P("En NETCONF, el `namespace` del módulo se usa en el filtro XML del `get-config`. En ambos casos, el equipo valida los datos contra el modelo y rechaza los que no cumplen sus tipos o restricciones (Bjørklund, 2016).")
 H("2.2.4 ¿Qué es pyang y cómo se usa?", 3)
-P("pyang es una herramienta de código abierto escrita en Python que valida módulos YANG, los transforma a otros formatos y genera código a partir de ellos (Bjørklund, s. f.). Se instala con `pip install pyang` y se usa desde la línea de comandos:")
-tabla("Usos comunes de pyang.", ["Comando", "Para qué sirve"], [
-    ["`pyang modulo.yang`", "Valida el módulo y reporta errores y advertencias"],
-    ["`pyang -f tree modulo.yang`", "Muestra el módulo como árbol, con la notación del RFC 8340"],
-    ["`pyang -f tree --tree-depth 3 modulo.yang`", "Limita la profundidad del árbol"],
-    ["`pyang -f tree --tree-path /interfaces/interface modulo.yang`", "Muestra solo una rama del árbol"],
-    ["`pyang -f sample-xml-skeleton modulo.yang`", "Genera un esqueleto XML de datos de ejemplo"],
-    ["`pyang -p carpeta modulo.yang`", "Indica dónde buscar los módulos importados"],
-], [8.6, 7.0])
+P("pyang es una herramienta de código abierto escrita en Python que valida módulos YANG, los transforma a otros formatos y genera código a partir de ellos (Bjørklund, s. f.). Se instala con `pip install pyang` y se usa desde la línea de comandos con la forma `pyang [opciones] modulo.yang`:")
+tabla("Opciones comunes de pyang.", ["Opción", "Para qué sirve"], [
+    ["(sin opciones)", "Valida el módulo y reporta errores y advertencias"],
+    ["`-f tree`", "Muestra el módulo como árbol, con la notación del RFC 8340"],
+    ["`-f tree --tree-depth 3`", "Limita la profundidad del árbol"],
+    ["`-f tree --tree-path /interfaces/interface`", "Muestra solo una rama del árbol"],
+    ["`-f sample-xml-skeleton`", "Genera un esqueleto XML de datos de ejemplo"],
+    ["`-p carpeta`", "Indica dónde buscar los módulos importados"],
+], [8.6, 7.0], 9)
 P("En este proyecto se usó pyang 2.7.1 con los módulos `ietf-interfaces` (revisión 2018-02-20) e `ietf-ip` (revisión 2018-02-22). Este es el inicio del árbol de `ietf-interfaces`:")
 codigo("""
 > pyang -f tree ietf-interfaces.yang

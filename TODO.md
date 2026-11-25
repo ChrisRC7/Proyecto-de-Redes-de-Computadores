@@ -66,19 +66,19 @@ ewman`)*
 
 Cada dato con su cita; nada de Wikipedia.
 
-**Randall — Bloque A: Programabilidad basada en modelos**
-- [ ] ¿Qué hace un equipo de DevOps?
-- [ ] Rol de SNMP
-- [ ] ¿Qué es el RFC 3535?
-- [ ] Definición de Model Driven Programmability
-- [ ] Bloques básicos de construcción
-- [ ] ¿Qué es un modelo de datos?
+**Randall — Bloque A: Programabilidad basada en modelos** — *en el informe, sección 2.1 (24 nov)*
+- [x] ¿Qué hace un equipo de DevOps?
+- [x] Rol de SNMP
+- [x] ¿Qué es el RFC 3535?
+- [x] Definición de Model Driven Programmability
+- [x] Bloques básicos de construcción
+- [x] ¿Qué es un modelo de datos?
 
-**Randall — Bloque B: YANG**
-- [ ] ¿Qué es YANG?
-- [ ] Lenguaje YANG vs. modelos de datos YANG vs. YANG data
-- [ ] Estructura del modelo de datos YANG y cómo se usa
-- [ ] pyang: qué es y cómo se usa (con captura de `pyang -f tree`) — *salida lista en `caso-de-uso/yang/` (ietf-interfaces rev. 2018-02-20 + ietf-ip, pyang 2.7.1)*
+**Randall — Bloque B: YANG** — *en el informe, sección 2.2 (24 nov), con la Figura #1 del árbol de pyang*
+- [x] ¿Qué es YANG?
+- [x] Lenguaje YANG vs. modelos de datos YANG vs. YANG data
+- [x] Estructura del modelo de datos YANG y cómo se usa
+- [x] pyang: qué es y cómo se usa (con captura de `pyang -f tree`) — *salida lista en `caso-de-uso/yang/` (ietf-interfaces rev. 2018-02-20 + ietf-ip, pyang 2.7.1)*
 
 **Christopher — Bloque C: NETCONF**
 - [x] ¿Qué es NETCONF y bajo qué estándar fue creado?
@@ -143,8 +143,8 @@ Cada dato con su cita; nada de Wikipedia.
 
 **Randall**
 - [ ] Portada: verificar apellidos completos, carnés y escuela — *dice «Escuela de Ingeniería Electrónica», pero CE-5301 es de Ingeniería en Computadores*
-- [ ] Objetivos 1.1: agregar los de los bloques A y B (hoy solo están los de NETCONF y RESTCONF)
-- [ ] Integrar todos los bloques de investigación con estilo uniforme — *en el informe solo está 2.3 (NETCONF); faltan 2.1 (A), 2.2 (B) y 2.4 (D)*
+- [x] Objetivos 1.1: agregar los de los bloques A y B — *listo 24 nov*
+- [ ] Integrar todos los bloques de investigación con estilo uniforme — *2.1 (A), 2.2 (B) y 2.3 (C) ya están; falta 2.4 (D, Javier)*
 - [ ] Unificar referencias en APA y verificar que **cada dato teórico tenga cita**
 - [x] Numerar tablas y figuras con el formato "**Tabla #1.** Descripción"
 - [ ] Revisar **página por página** que todo esté justificado

@@ -237,10 +237,10 @@ for tipo, txt in (("begin", None), (None, ' TOC \\o "1-2" \\h \\z \\u '), ("sepa
         e = OxmlElement("w:fldChar"); e.set(qn("w:fldCharType"), tipo); r._r.append(e)
     else:
         e = OxmlElement("w:instrText"); e.set(qn("xml:space"), "preserve"); e.text = txt; r._r.append(e)
-salto()
+# Sin salto() aquí: si el índice llena la página, el salto deja una página en blanco.
 
 # ---------------------------------------------------------------- OBJETIVOS
-H("1. Objetivos del Desafío")
+H("1. Objetivos del Desafío").paragraph_format.page_break_before = True
 H("1.1 Objetivos de la parte investigativa", 2)
 B([
     "Explicar qué es la programabilidad basada en modelos y por qué surgió, a partir del trabajo de los equipos de DevOps, las limitaciones de SNMP y los requisitos del RFC 3535.",

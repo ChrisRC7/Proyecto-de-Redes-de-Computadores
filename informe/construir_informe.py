@@ -588,6 +588,11 @@ P("La respuesta HTTP 201 indica que se creó un recurso nuevo, "
   "obtenida. En aplicaciones de producción deben utilizarse "
   "certificados confiables y mantenerse habilitada su verificación "
   "(Bierman et al., 2017; Reitz, s. f.).")
+P("El cuerpo de este ejemplo sigue la forma del RFC 8040, que en un PUT "
+  "sobre una entrada de lista la escribe como un arreglo de un solo "
+  "elemento (Bierman et al., 2017). El script del caso de uso envía la "
+  "entrada como un objeto, sin arreglo (sección 2.2.2), y el IOS XE del "
+  "sandbox también lo aceptó con HTTP 201 en las pruebas de la sección 4.")
 
 P("Los scripts del caso de uso (sección 3.5 y Anexo 1) amplían este ejemplo para recorrer una lista de interfaces, medir el tiempo de cada petición y guardar los resultados.")
 H("2.4.5 Herramientas de automatización de la configuración de redes", 3)
@@ -676,7 +681,7 @@ _r = OxmlElement("w:r"); _rpr = OxmlElement("w:rPr")
 _f = OxmlElement("w:rFonts")
 for _a in ("w:ascii", "w:hAnsi", "w:cs"):
     _f.set(qn(_a), "Arial")
-_c = OxmlElement("w:color"); _c.set(qn("w:val"), "0563C1")
+_c = OxmlElement("w:color"); _c.set(qn("w:val"), "000000")
 _u = OxmlElement("w:u"); _u.set(qn("w:val"), "single")
 for _e in (_f, _c, _u):
     _rpr.append(_e)
@@ -744,6 +749,23 @@ B([
     "entre las interfaces deshabilitadas intencionalmente y aquellas "
     "que presentan una falla real, evitando así generar alertas "
     "innecesarias.",
+    "**Randall.** Como líder de investigación y editor del informe, "
+    "este desafío me permitió entender por qué surgió la programabilidad "
+    "basada en modelos: las limitaciones de SNMP para configurar equipos "
+    "y los requisitos que los operadores plantearon en el RFC 3535 explican "
+    "que NETCONF, RESTCONF y YANG separen la configuración del estado y "
+    "trabajen con datos estructurados en lugar de texto de la CLI. Lo más "
+    "útil de la investigación fue explorar los modelos con pyang, porque el "
+    "árbol de `ietf-interfaces` muestra qué nodos se pueden escribir y "
+    "cuáles solo se leen, y esa misma distinción guio el caso de uso: PUT "
+    "y PATCH para configurar, y GET sobre el estado para monitorear. En la "
+    "edición, la mayor dificultad fue integrar el trabajo de tres personas "
+    "con un estilo uniforme y respaldar cada dato teórico con una fuente "
+    "confiable; generar el documento desde un único script en el "
+    "repositorio ayudó a mantener una sola versión. Como mejora, "
+    "integraría los bloques de investigación desde el inicio y no al "
+    "final, y haría la validación independiente de los scripts antes de "
+    "que venza la reserva del sandbox.",
 ])
 H("5.2 Recomendaciones y mejoras", 2)
 B([

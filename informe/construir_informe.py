@@ -792,7 +792,7 @@ for r_ in refs:
 # ---------------------------------------------------------------- ANEXO 1
 salto()
 H("Anexo 1: Configuraciones o Código Fuente")
-P("El código completo se encuentra en el repositorio del proyecto, https://github.com/ChrisRC7/Proyecto-de-Redes-de-Computadores, rama `main`, carpeta `caso-de-uso/`. [[PENDIENTE (Christopher): dar acceso al profesor o hacer público el repositorio, que hoy es privado.]] Contenido:")
+P("El código completo se encuentra en el repositorio del proyecto, https://github.com/ChrisRC7/Proyecto-de-Redes-de-Computadores, rama `main`, carpeta `caso-de-uso/`. Contenido:")
 tabla("Archivos del Anexo 1.", ["Archivo", "Descripción"], [
     ["configurar_interfaces.py", "Crear, listar, modificar, apagar, encender y borrar interfaces vía RESTCONF"],
     ["monitorear_interfaces.py", "Monitoreo de estado y alerta a Webex"],
@@ -853,7 +853,7 @@ tabla("Datos de la Minuta 1.", ["Campo", "Detalle"], [
     ["Redactor", "Javier"],
     ["Evidencia", "Figura siguiente (captura de Discord del 18 de noviembre)"],
 ], [4.0, 11.6])
-P("[[PENDIENTE: adjuntar aquí la captura real de esta reunión; la imagen anterior fue retirada.]]")
+figura(os.path.join(BASE, "..", "Capturas", "image.png"), "Captura de la reunión del 18 de noviembre de 2026 en Discord.", 14)
 P("**Agenda:** lectura del enunciado y de la rúbrica del Desafío de Redes (CE-5301); elección del caso de uso; definición de roles y reglas del equipo; cronograma y fechas de reuniones.")
 P("**Desarrollo:**")
 B([
@@ -891,7 +891,7 @@ tabla("Datos de la Minuta 2.", ["Campo", "Detalle"], [
     ["Redactor", "Randall"],
     ["Evidencia", "Figura siguiente (captura de Discord del 20 de noviembre)"],
 ], [4.0, 11.6])
-P("[[PENDIENTE: adjuntar aquí la captura real de esta reunión; la imagen anterior fue retirada.]]")
+figura(os.path.join(BASE, "..", "Capturas", "image2.png"), "Captura de la reunión del 20 de noviembre de 2026 en Discord.", 14)
 P("**Agenda:** seguimiento de las tareas de la Minuta 1; estado de la investigación por bloque; avance del caso de uso (scripts, colección de Postman y alertas a Webex); problemas y riesgos; ajustes al cronograma.")
 P("**Desarrollo:**")
 B([
@@ -958,7 +958,7 @@ tabla("Tareas asignadas en la Minuta 3.", ["Tarea", "Responsable", "Fecha límit
 ], [9.0, 3.4, 3.2])
 P("Próxima reunión (opcional): 25 de noviembre, cierre y lecciones aprendidas.")
 H("A2.6 Bitácoras individuales", 2)
-P("**Christopher.** Entradas reconstruidas a partir del historial del repositorio, las capturas y las minutas; las duraciones sin dato deben completarse.")
+P("**Christopher.** Entradas reconstruidas a partir del historial del repositorio, las capturas y las minutas.")
 tabla("Bitácora de Christopher.", ["Fecha", "Actividad", "Duración"], [
     ["12 nov", "Creación del repositorio y primeras tareas", "45 min aprox."],
     ["18 nov", "Reunión 1 por Discord (Minuta 1): caso de uso aprobado y reparto de tareas", "Más de 32 min"],

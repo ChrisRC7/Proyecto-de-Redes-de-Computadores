@@ -101,7 +101,7 @@ Cada dato con su cita; nada de Wikipedia.
   - [x] Precisar los requisitos de Postman, Desktop Agent, VPN, AAA y validación TLS.
   - [x] Preparar un ejemplo didáctico de Python con variables de entorno, timeout y manejo de errores HTTP; conservar los scripts reales ya probados.
   - [x] Actualizar la comparación Ansible, Puppet y Salt (WSL, agente proxy y sistemas operativos); preparar análisis de aplicación al caso de uso.
-- [ ] Confirmar que todas las correcciones quedaron incorporadas en el generador, avisar a Randall y armonizar el ejemplo JSON de 2.2.2 con el de 2.4.4. El ejemplo didáctico nuevo no se ha probado contra el sandbox.
+- [x] Confirmar que todas las correcciones quedaron incorporadas en el generador, avisar a Randall y armonizar el ejemplo JSON de 2.2.2 con el de 2.4.4. El ejemplo didáctico nuevo no se ha probado contra el sandbox. — *26 nov: las correcciones están en el informe; una nota en 2.4.4 explica que el ejemplo usa el arreglo del RFC 8040 y que el script real envió un objeto que el IOS XE aceptó con 201*
 
 **Todos**
 - [x] **Reunión 2 (avance de investigación + demo preliminar)** → **Minuta 2** — *Minuta 2 redactada; falta la captura real*
@@ -158,25 +158,25 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Numerar tablas y figuras con el formato "**Tabla #1.** Descripción"
 - [x] Revisar **página por página** que todo esté justificado — *24 nov: 0 párrafos sin justificar en el Word; repetir al final con el PDF definitivo*
 - [x] Generar índice automático
-- [ ] Incorporar y verificar la referencia adicional al RFC 8527 y las fuentes específicas de las correcciones de RESTCONF (Postman, Puppet, Ansible, Salt y Requests); actualizar las citas APA correspondientes sin duplicar referencias.
+- [x] Incorporar y verificar la referencia adicional al RFC 8527 y las fuentes específicas de las correcciones de RESTCONF (Postman, Puppet, Ansible, Salt y Requests); actualizar las citas APA correspondientes sin duplicar referencias. — *26 nov: RFC 8527 verificado (autores, título y URL)*
 
 **Javier**
 - [x] Anexo 2: metas, roles, reglas, cronograma con responsables y fechas
 - [x] Anexo 2: redactar las tres minutas (A2.5) — *las tres están redactadas; la Minuta 3 tiene captura real.*
 - [x] Anexo 2: preparar las tres bitácoras individuales (A2.6) — *25 nov: Christopher, Randall y Javier, con actividades documentadas y duraciones aproximadas.*
 - [x] Anexo 2: redactar reflexión grupal sobre eficiencia, equidad y colaboración (TE5–TE7) — *25 nov: código preparado para A2.7, incluyendo oportunidades de mejora y recordatorio de la evaluación individual obligatoria.*
-- [ ] Confirmar la incorporación de las tres bitácoras y la reflexión en `construir_informe.py` y el Word definitivo; validar las duraciones y la reflexión con el equipo.
-- [ ] Anexo 2: completar las evidencias de las minutas 1 y 2 y actualizar cualquier afirmación desfasada de la Minuta 3.
+- [ ] Confirmar la incorporación de las tres bitácoras y la reflexión en `construir_informe.py` y el Word definitivo; validar las duraciones y la reflexión con el equipo. — *26 nov: ya están en el Word y el PDF; falta que cada uno valide*
+- [x] Anexo 2: completar las evidencias de las minutas 1 y 2 y actualizar cualquier afirmación desfasada de la Minuta 3.
 
 **Todos**
 - [x] Párrafo de conclusión (5.1): Christopher
-- [ ] Párrafo de conclusión (5.1): Randall
+- [x] Párrafo de conclusión (5.1): Randall — *26 nov*
 - [x] Párrafo de conclusión (5.1): Javier — *25 nov: redactado sobre RESTCONF, YANG, automatización, Webex y mejora del monitoreo; falta verificar en el informe definitivo.*
 - [x] Bitácora en A2.6: Christopher — *25 nov: se prepararon sustituciones para las tres duraciones pendientes, conservando las actividades originales; estimaciones por validar.*
 - [x] Bitácora en A2.6: Randall — *25 nov: tabla completa preparada para las actividades documentadas; no se incluyen como realizadas las pruebas independientes, grabación ni exportación aún no confirmadas.*
 - [x] Bitácora en A2.6: Javier — *25 nov: tabla preparada y duraciones aproximadas completadas; quedan por registrar las actividades de video cuando se realicen.*
 - [ ] Cada integrante valida las fechas, actividades y tiempos estimados de su bitácora y registra las actividades adicionales efectivamente realizadas.
-- [ ] Capturas reales de las reuniones 1 (18 nov) y 2 (20 nov) para las minutas — *las de `Capturas/` se retiraron del informe*
+- [x] Capturas de las reuniones 1 (18 nov) y 2 (20 nov) para las minutas — *25 nov: Christopher las agregó al informe*
 
 ---
 
@@ -189,8 +189,8 @@ Cada dato con su cita; nada de Wikipedia.
 - [x] Preparar el guion completo de exposición — *25 nov: `Guion_Desafio_Redes.html`, con texto por integrante y diapositiva, tiempos, transiciones e indicaciones para la demo.*
 - [ ] Compartir los archivos actualizados con los compañeros e incorporarlos al repositorio en la ubicación acordada.
 - [ ] Christopher: contrastar los pasos y comandos del guion HTML con `caso-de-uso/demo/GUION_DEMO.md` y su entorno real antes de grabar.
-- [ ] Editar y unir las partes; verificar duración **≤ 10:00**
-- [ ] Subir (YouTube no listado o Drive) y comprobar que el enlace abre sin iniciar sesión
+- [x] Editar y unir las partes; verificar duración **≤ 10:00** — *26 nov: el video dura 7:17*
+- [x] Subir (YouTube no listado o Drive) y comprobar que el enlace abre sin iniciar sesión — *https://youtu.be/JaxwUICyKm4; abre sin sesión (26 nov)*
 
 **Reparto del guion actualizado (cada quien con cámara encendida)**
 
@@ -215,23 +215,23 @@ Duración objetivo: 9:00; margen de 1:00. El guion original permitía Randall o 
 ## Fase 5 — Cierre y entrega (24 nov a 26 nov)
 
 **Randall**
-- [ ] Insertar el enlace del video en la sección Caso de Uso
-- [ ] Revisión final de ortografía y formato; exportar a **PDF**
-- [ ] Actualizar el índice en Word, verificar la paginación (el PDF previo tenía una página 3 en blanco), revisar numeración de figuras y tablas, justificación y referencias; buscar marcadores `PENDIENTE` / `completar` antes de exportar.
+- [x] Insertar el enlace del video en la sección Caso de Uso — *25 nov, Christopher*
+- [x] Revisión final de ortografía y formato; exportar a **PDF** — *26 nov: 52 páginas*
+- [x] Actualizar el índice en Word, verificar la paginación (el PDF previo tenía una página 3 en blanco), revisar numeración de figuras y tablas, justificación y referencias; buscar marcadores `PENDIENTE` / `completar` antes de exportar. — *26 nov: sin página en blanco, índice igual a las páginas reales, 0 párrafos sin justificar, sin marcadores ni texto de color*
 
 **Christopher**
-- [ ] Reservar de nuevo el sandbox antes de grabar la demo — *la reserva venció el 24 nov a las 13:22*
-- [ ] Dar acceso al profesor o hacer público el repositorio — *hoy es privado; el enlace ya está en la sección 3.3 y el Anexo 1*
+- [x] Reservar de nuevo el sandbox antes de grabar la demo — *el video ya está grabado y subido*
+- [x] Dar acceso al profesor o hacer público el repositorio — *26 nov: el repositorio es público*
 - [x] Hacer el merge a `main` (el informe dice «rama main») — *24 nov: `main` quedó al día con `Development`*
 - [ ] Revisión cruzada del PDF contra la tabla de puntaje de [REQUERIMIENTOS.md](REQUERIMIENTOS.md) — *revisar también que la sección 4 describa el sandbox on-demand como privado y no compartido, y que el rango de tiempos de monitoreo coincida con la tabla de resultados.*
 - [ ] Subir **una sola copia** a TEC Digital, ítem "Presentación Final: Desafío Redes"
 
 **Javier**
 - [x] Preparar el entorno local de generación del informe — *25 nov: `.venv` con `python-docx`; se ejecutó correctamente `construir_informe.py` y se generó `Informe.docx`. Si Word tiene abierto el archivo, cerrarlo antes de regenerar para evitar `PermissionError`.*
-- [ ] Regenerar el informe con todos los cambios, comprobar A2.6, A2.7, 5.1 y 2.4 y revisar portada/índice y resultados conforme al reparto de revisión.
+- [x] Regenerar el informe con todos los cambios, comprobar A2.6, A2.7, 5.1 y 2.4 y revisar portada/índice y resultados conforme al reparto de revisión.
 - [ ] Verificar que el Anexo 2 tenga 3+ minutas y 3 bitácoras completas, sin evidencias pendientes ni tiempos sin validar.
-- [ ] Integrar los cambios locales de Javier en su rama y coordinar el merge a `Development` y posteriormente a `main` con Christopher; no se confirma un push posterior al 24 nov.
-- [ ] Confirmar que el enlace del video funciona desde otra cuenta
+- [x] Integrar los cambios locales de Javier en su rama y coordinar el merge a `Development` y posteriormente a `main` con Christopher; no se confirma un push posterior al 24 nov. — *25 nov: el commit de Javier está en `main`*
+- [x] Confirmar que el enlace del video funciona desde otra cuenta — *26 nov: abre sin iniciar sesión*
 
 **Todos (individual, obligatorio)**
 - [ ] Christopher llenó el formulario de evaluación individual y coevaluación

@@ -668,7 +668,20 @@ if caidas:
                   json={"roomId": ROOM_ID, "markdown": "**Alerta:** interfaz(es) caída(s): " + ", ".join(caidas)})
 """)
 H("3.6 Video de la demostración", 2)
-P("Enlace al video: [[PENDIENTE: insertar aquí el enlace (YouTube no listado o Drive) cuando el video esté editado y se haya verificado que abre sin iniciar sesión]]")
+VIDEO_URL = "https://youtu.be/JaxwUICyKm4"
+_p = P("Enlace al video: ")
+_rid = _p.part.relate_to(VIDEO_URL, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink", is_external=True)
+_h = OxmlElement("w:hyperlink"); _h.set(qn("r:id"), _rid)
+_r = OxmlElement("w:r"); _rpr = OxmlElement("w:rPr")
+_f = OxmlElement("w:rFonts")
+for _a in ("w:ascii", "w:hAnsi", "w:cs"):
+    _f.set(qn(_a), "Arial")
+_c = OxmlElement("w:color"); _c.set(qn("w:val"), "0563C1")
+_u = OxmlElement("w:u"); _u.set(qn("w:val"), "single")
+for _e in (_f, _c, _u):
+    _rpr.append(_e)
+_t = OxmlElement("w:t"); _t.text = VIDEO_URL
+_r.append(_rpr); _r.append(_t); _h.append(_r); _p._p.append(_h)
 
 salto()
 # ---------------------------------------------------------------- RESULTADOS
